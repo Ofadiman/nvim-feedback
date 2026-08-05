@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: stylua
+      run: stylua --allow-hidden .
+      stage_fixed: true
+
+    - name: lua_ls
+      run: lua-language-server --check=. --checklevel=Warning
+
+    - name: prettier
+      run: prettier --write .
+      stage_fixed: true
+
+    - name: taplo
+      run: taplo format .
+      stage_fixed: true
