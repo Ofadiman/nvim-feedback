@@ -11,8 +11,7 @@ pre-commit:
       run: lua-language-server --check=. --checklevel=Warning
 
     - name: prettier
-      glob: "*.{md,json,yaml,yml}"
-      run: prettier --write {staged_files}
+      run: prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 
     - name: taplo
