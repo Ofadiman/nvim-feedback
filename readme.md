@@ -2,7 +2,7 @@
 
 Leave review comments on code in Neovim, then hand them to an AI agent to resolve.
 
-Select a range, write a comment, and it is stored in `feedback.json` at the repository root together with an anchor describing the code it points at. Comments are scoped to the current Git branch and render inline as virtual text. The bundled `resolve-feedback` skill teaches an agent to locate each comment, apply the change, and delete only the items it actually resolved.
+Select a range, write a comment, and it is stored in `feedback.json` at the repository root together with an anchor describing the code it points at. Comments are scoped to the current Git branch and render inline as virtual text. The bundled `nvim-feedback-resolve` skill teaches an agent to locate each comment, apply the change, and delete only the items it actually resolved.
 
 ## Features
 
@@ -43,12 +43,12 @@ Add `feedback.json` to `.gitignore` in every repository where you use this plugi
 
 ### Installing the agent skill
 
-The plugin only records comments. Resolving them is done by the bundled `resolve-feedback` skill, which you install separately with the [skills](https://www.npmjs.com/package/skills) CLI.
+The plugin only records comments. Resolving them is done by the bundled `nvim-feedback-resolve` skill, which you install separately with the [skills](https://www.npmjs.com/package/skills) CLI.
 
 Install it globally for Claude Code and Codex:
 
 ```sh
-skills add Ofadiman/nvim-feedback --global --agent claude-code,codex --skill resolve-feedback --yes
+skills add Ofadiman/nvim-feedback --global --agent claude-code,codex --skill nvim-feedback-resolve --yes
 ```
 
 ## Configuration
@@ -104,7 +104,7 @@ lualine_x = {
 
 ### Resolving feedback with an agent
 
-Once comments exist, ask your agent to use the `resolve-feedback` skill. It reads `feedback.json`, filters to the current branch, locates each comment against the current working tree, applies the smallest change that satisfies it, verifies the result, and removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
+Once comments exist, ask your agent to use the `nvim-feedback-resolve` skill. It reads `feedback.json`, filters to the current branch, locates each comment against the current working tree, applies the smallest change that satisfies it, verifies the result, and removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
 
 ## Roadmap
 
