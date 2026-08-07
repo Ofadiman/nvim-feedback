@@ -1,19 +1,23 @@
 pre-commit:
   parallel: true
+  skip: [merge, rebase]
   jobs:
     - name: stylua
-      run: stylua --allow-hidden .
+      glob: "*.lua"
+      run: stylua {staged_files}
       stage_fixed: true
 
     - name: lua_ls
       run: lua-language-server --check=. --checklevel=Warning
 
     - name: prettier
-      run: prettier --write .
+      glob: "*.{md,json,yaml,yml}"
+      run: prettier --write {staged_files}
       stage_fixed: true
 
     - name: taplo
-      run: taplo format .
+      glob: "*.toml"
+      run: taplo format {staged_files}
       stage_fixed: true
 
     - name: shfmt
