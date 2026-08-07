@@ -1,6 +1,7 @@
 ---
 name: nvim-feedback-resolve
 description: Resolve branch-scoped code feedback recorded by Neovim in a Git repository's feedback.json file. Use when the user invokes nvim-feedback-resolve, asks to apply editor feedback, or wants AI feedback comments addressed one by one.
+disable-model-invocation: true
 ---
 
 # Resolve Feedback

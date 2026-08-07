@@ -2,3 +2,5 @@ interface:
   display_name: "Resolve Feedback"
   short_description: "Apply anchored Neovim feedback safely"
   default_prompt: "Use $nvim-feedback-resolve to apply open editor feedback in this repository."
+policy:
+  allow_implicit_invocation: false

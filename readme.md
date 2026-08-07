@@ -104,7 +104,7 @@ lualine_x = {
 
 ### Resolving feedback with an agent
 
-Once comments exist, ask your agent to use the `nvim-feedback-resolve` skill. It reads `feedback.json`, filters to the current branch, locates each comment against the current working tree, applies the smallest change that satisfies it, verifies the result, and removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
+Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It reads `feedback.json`, filters to the current branch, locates each comment against the current working tree, applies the smallest change that satisfies it, verifies the result, and removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
 
 ## Roadmap
 
