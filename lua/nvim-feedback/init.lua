@@ -215,12 +215,13 @@ refresh_buffer = function(buffer)
 
   local data, read_error = read_feedback(context.root, context.branch)
   if not data then
-    buffers[buffer] = buffers[buffer] or {
-      root = context.root,
-      branch = context.branch,
-      relative_path = context.relative_path,
-      marks = {},
-    }
+    buffers[buffer] = buffers[buffer]
+      or {
+        root = context.root,
+        branch = context.branch,
+        relative_path = context.relative_path,
+        marks = {},
+      }
     mtimes[context.root] = store.mtime(context.root)
     report_error(context.root, read_error)
     return
@@ -246,7 +247,12 @@ refresh_buffer = function(buffer)
           start_col = math.min(item.range.start_col, #line)
           end_col = item.range.start_line == item.range.end_line and math.min(item.range.end_col, #line) or #line
         end
-      elseif start_line ~= item.range.start_line or end_line ~= item.range.end_line or start_col ~= item.range.start_col or end_col ~= item.range.end_col then
+      elseif
+        start_line ~= item.range.start_line
+        or end_line ~= item.range.end_line
+        or start_col ~= item.range.start_col
+        or end_col ~= item.range.end_col
+      then
         relocated[item.id] = {
           start_line = start_line,
           end_line = end_line,
@@ -377,12 +383,22 @@ local function position_before(left_line, left_col, right_line, right_col)
   return left_line < right_line or (left_line == right_line and left_col < right_col)
 end
 
-local function ranges_overlap(start_line, end_line, start_col, end_col, item_start, item_end, item_start_col, item_end_col)
+local function ranges_overlap(
+  start_line,
+  end_line,
+  start_col,
+  end_col,
+  item_start,
+  item_end,
+  item_start_col,
+  item_end_col
+)
   if start_col == nil or item_start_col == nil then
     return start_line <= item_end and end_line >= item_start
   end
 
-  return position_before(start_line, start_col, item_end, item_end_col) and position_before(item_start, item_start_col, end_line, end_col)
+  return position_before(start_line, start_col, item_end, item_end_col)
+    and position_before(item_start, item_start_col, end_line, end_col)
 end
 
 local function current_entries()
@@ -419,7 +435,10 @@ local function current_entries()
           item_end_col = nil
         end
       end
-      if item_start and ranges_overlap(start_line, end_line, start_col, end_col, item_start, item_end, item_start_col, item_end_col) then
+      if
+        item_start
+        and ranges_overlap(start_line, end_line, start_col, end_col, item_start, item_end, item_start_col, item_end_col)
+      then
         table.insert(matches, item)
       end
     end
@@ -466,7 +485,12 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
 
   local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
   local created_at = os.date("!%Y-%m-%dT%H:%M:%SZ")
-  local id = vim.fn.sha256(table.concat({ context.root, context.branch, context.relative_path, start_line, end_line, created_at, vim.uv.hrtime() }, "\0"))
+  local id = vim.fn.sha256(
+    table.concat(
+      { context.root, context.branch, context.relative_path, start_line, end_line, created_at, vim.uv.hrtime() },
+      "\0"
+    )
+  )
   local entry = {
     id = id,
     branch = context.branch,
@@ -670,7 +694,10 @@ function M.delete_all()
   mtimes[location.root] = store.mtime(location.root)
   refresh_root(location.root)
   local deleted_suffix = deleted == 1 and "" or "s"
-  vim.notify(string.format("Deleted %d AI feedback comment%s from branch %s", deleted, deleted_suffix, location.branch), vim.log.levels.INFO)
+  vim.notify(
+    string.format("Deleted %d AI feedback comment%s from branch %s", deleted, deleted_suffix, location.branch),
+    vim.log.levels.INFO
+  )
 end
 
 function M.find()

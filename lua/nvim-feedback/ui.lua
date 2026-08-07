@@ -68,7 +68,8 @@ function M.open(value, on_save, options)
   vim.wo[active_window].wrap = true
   vim.wo[active_window].linebreak = true
   vim.wo[active_window].cursorline = true
-  vim.wo[active_window].winhl = "Normal:NormalFloat,FloatBorder:DiagnosticWarn,FloatTitle:DiagnosticWarn,FloatFooter:Comment"
+  vim.wo[active_window].winhl =
+    "Normal:NormalFloat,FloatBorder:DiagnosticWarn,FloatTitle:DiagnosticWarn,FloatFooter:Comment"
 
   vim.keymap.set("n", "<Esc>", function()
     if feedback_text(buffer):match("^%s*$") then

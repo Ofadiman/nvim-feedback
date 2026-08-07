@@ -188,7 +188,12 @@ local function locate_text(lines, item)
     return left.column_distance < right.column_distance
   end)
 
-  if #candidates > 1 and candidates[1].score == candidates[2].score and candidates[1].distance == candidates[2].distance and candidates[1].column_distance == candidates[2].column_distance then
+  if
+    #candidates > 1
+    and candidates[1].score == candidates[2].score
+    and candidates[1].distance == candidates[2].distance
+    and candidates[1].column_distance == candidates[2].column_distance
+  then
     return nil
   end
 
@@ -287,7 +292,11 @@ function M.locate(lines, item)
     return left.distance < right.distance
   end)
 
-  if #candidates > 1 and candidates[1].score == candidates[2].score and candidates[1].distance == candidates[2].distance then
+  if
+    #candidates > 1
+    and candidates[1].score == candidates[2].score
+    and candidates[1].distance == candidates[2].distance
+  then
     return nil
   end
 

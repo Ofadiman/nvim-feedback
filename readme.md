@@ -123,7 +123,6 @@ It links `skills/nvim-feedback-resolve` into `~/.claude/skills` and `~/.codex/sk
 - A `doc/` vignette so `:help nvim-feedback` works.
 - Broader configuration with validation, if a second option turns out to be worth having.
 - CI running formatting and static analysis.
-- Lower `column_width` in `stylua.toml` from 600 to a readable width and reformat.
 
 ## License
 

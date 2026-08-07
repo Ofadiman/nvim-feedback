@@ -83,11 +83,20 @@ local function validate_item(item)
     return false
   end
 
-  if type(item.range) ~= "table" or type(item.range.start_line) ~= "number" or type(item.range.end_line) ~= "number" then
+  if
+    type(item.range) ~= "table"
+    or type(item.range.start_line) ~= "number"
+    or type(item.range.end_line) ~= "number"
+  then
     return false
   end
 
-  if item.range.start_line % 1 ~= 0 or item.range.end_line % 1 ~= 0 or item.range.start_line < 1 or item.range.end_line < item.range.start_line then
+  if
+    item.range.start_line % 1 ~= 0
+    or item.range.end_line % 1 ~= 0
+    or item.range.start_line < 1
+    or item.range.end_line < item.range.start_line
+  then
     return false
   end
 
@@ -99,7 +108,10 @@ local function validate_item(item)
     return false
   end
 
-  if not validate_lines(item.anchor.selected_lines) or #item.anchor.selected_lines ~= item.range.end_line - item.range.start_line + 1 then
+  if
+    not validate_lines(item.anchor.selected_lines)
+    or #item.anchor.selected_lines ~= item.range.end_line - item.range.start_line + 1
+  then
     return false
   end
 
