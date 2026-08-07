@@ -31,7 +31,6 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
   "Ofadiman/nvim-feedback",
   dependencies = { "nvim-telescope/telescope.nvim" },
   lazy = false,
-  build = "skills add Ofadiman/nvim-feedback -y",
   config = function()
     require("nvim-feedback").setup()
   end,
@@ -40,9 +39,17 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 `lazy = false` is required. The plugin registers autocommands that must be active from startup to render comments in buffers you open.
 
-The `build` step installs the `resolve-feedback` skill for your agents. It runs on install and update, but lazy.nvim skips `build` for local plugins, so if you install from a directory instead of from GitHub, run `:Lazy build nvim-feedback` or `skills add` yourself.
-
 Add `feedback.json` to `.gitignore` in every repository where you use this plugin. Comments are personal scratch state and should not be committed.
+
+### Installing the agent skill
+
+The plugin only records comments. Resolving them is done by the bundled `resolve-feedback` skill, which you install separately with the [skills](https://www.npmjs.com/package/skills) CLI.
+
+Install it globally for Claude Code and Codex:
+
+```sh
+skills add Ofadiman/nvim-feedback --global --agent claude-code,codex --skill resolve-feedback --yes
+```
 
 ## Configuration
 
