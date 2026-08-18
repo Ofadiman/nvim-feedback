@@ -3,7 +3,7 @@
 set -euo pipefail
 
 skill_name="nvim-feedback-resolve"
-repo_root=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+repo_root=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 source_dir="$repo_root/skills/$skill_name"
 
 if [ ! -d "$source_dir" ]; then
