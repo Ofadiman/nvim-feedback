@@ -18,7 +18,7 @@ Select a range, write a comment, and it is stored in `feedback.json` at the repo
 
 ## Requirements
 
-- Neovim 0.11 or newer.
+- Neovim 0.12 or newer.
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 - [skills](https://www.npmjs.com/package/skills) CLI, to install the bundled agent skill.
 
@@ -64,7 +64,7 @@ require("nvim-feedback").setup({
 })
 ```
 
-Both values must be numbers between 0 and 1. Anything else raises an error at `setup()`.
+Both values must be numbers between 0 and 1. A value outside that range falls back to `0.5` for that dimension, and `:checkhealth nvim-feedback` reports the substitution.
 
 ## Usage
 
@@ -113,7 +113,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local development setup.
 ## Roadmap
 
 - Semver release tags.
-- `:checkhealth` support.
 - A `doc/` vignette so `:help nvim-feedback` works.
 - Broader configuration with validation, if a second option turns out to be worth having.
 

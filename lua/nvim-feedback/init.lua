@@ -1,4 +1,5 @@
 local anchor = require("nvim-feedback.git")
+local config = require("nvim-feedback.config")
 local picker = require("nvim-feedback.picker")
 local store = require("nvim-feedback.store")
 local ui = require("nvim-feedback.ui")
@@ -10,23 +11,6 @@ local buffers = {}
 local feedback_counts = {}
 local mtimes = {}
 local errors = {}
-local initialized = false
-
-local defaults = {
-  window = {
-    width = 0.5,
-    height = 0.5,
-  },
-}
-
-local config = vim.deepcopy(defaults)
-
-local function validate_fraction(name, value)
-  vim.validate(name, value, "number")
-  if value <= 0 or value >= 1 then
-    error(string.format("%s must be a number between 0 and 1, got %s", name, tostring(value)))
-  end
-end
 
 local function notify_error(message)
   vim.notify(message or "Unknown AI feedback error", vim.log.levels.ERROR)
@@ -521,7 +505,7 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
     mtimes[context.root] = store.mtime(context.root)
     refresh_root(context.root)
     return true
-  end, { start_insert = true, window = config.window })
+  end, { start_insert = true, window = config.window() })
 end
 
 local function edit_feedback(current, item)
@@ -542,7 +526,7 @@ local function edit_feedback(current, item)
     mtimes[current.context.root] = store.mtime(current.context.root)
     refresh_root(current.context.root)
     return true
-  end, { window = config.window })
+  end, { window = config.window() })
 end
 
 local function add_current_feedback(current)
@@ -792,15 +776,12 @@ function M.setup(opts)
   vim.validate("opts", opts, "table")
   vim.validate("opts.window", opts.window, "table", true)
 
-  local resolved = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts)
-  validate_fraction("opts.window.width", resolved.window.width)
-  validate_fraction("opts.window.height", resolved.window.height)
-  config = resolved
+  config.resolve(opts)
 
-  if initialized then
+  if config.is_initialized() then
     return
   end
-  initialized = true
+  config.mark_initialized()
 
   local group = vim.api.nvim_create_augroup("nvim-feedback", { clear = true })
   vim.api.nvim_create_autocmd("BufWinEnter", {
