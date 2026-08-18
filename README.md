@@ -106,15 +106,9 @@ lualine_x = {
 
 Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It reads `feedback.json`, filters to the current branch, locates each comment against the current working tree, applies the smallest change that satisfies it, verifies the result, and removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
 
-## Local development
+## Contributing
 
-When working on the skill itself, symlink it from your clone instead of installing it, so edits take effect without reinstalling:
-
-```sh
-./scripts/link.sh
-```
-
-It links `skills/nvim-feedback-resolve` into `~/.claude/skills` and `~/.codex/skills`. Re-running it is safe, but it refuses to replace an existing non-symlink directory, so remove any copy installed by `skills add` first.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local development setup.
 
 ## Roadmap
 
