@@ -1,0 +1,10 @@
+[tools]
+"aqua:JohnnyMorganz/StyLua" = "v2.5.2"
+"aqua:koalaman/shellcheck" = "0.11.0"
+"aqua:mvdan/sh" = "v3.13.1"
+"aqua:rhysd/actionlint" = "1.7.12"
+"aqua:tamasfe/taplo" = "0.10.0"
+lua-language-server = "3.18.2"
+node = "24.16.0"
+"npm:lefthook" = "2.1.9"
+"npm:prettier" = "3.8.3"

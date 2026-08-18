@@ -116,7 +116,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local development setup.
 - `:checkhealth` support.
 - A `doc/` vignette so `:help nvim-feedback` works.
 - Broader configuration with validation, if a second option turns out to be worth having.
-- CI running formatting and static analysis.
 
 ## License
 

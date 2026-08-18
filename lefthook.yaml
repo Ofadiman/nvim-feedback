@@ -27,3 +27,7 @@ pre-commit:
     - name: shellcheck
       file_types: text/x-sh
       run: shellcheck --severity=style --exclude=SC1071 {staged_files}
+
+    - name: actionlint
+      glob: ".github/workflows/*"
+      run: actionlint

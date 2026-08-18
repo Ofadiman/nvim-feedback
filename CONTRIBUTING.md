@@ -1,5 +1,7 @@
 # Contributing
 
+This project uses [mise](https://mise.jdx.dev) to manage tool versions. Follow the [installation guide](https://mise.jdx.dev/installing-mise.html) to set it up, then run `mise install` to get every tool pinned in `mise.toml`.
+
 ## Local development
 
 When working on the skill itself, symlink it from your clone instead of installing it, so edits take effect without reinstalling:
