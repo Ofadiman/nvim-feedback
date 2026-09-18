@@ -1,6 +1,11 @@
 local M = {}
 
 local active_window = nil
+local window_size = {}
+
+function M.configure(window)
+  window_size = window
+end
 
 local function close_active_window()
   local window = active_window
@@ -44,7 +49,7 @@ function M.open(value, on_save, options)
   vim.api.nvim_buf_set_lines(buffer, 0, -1, false, initial_lines(value))
   vim.bo[buffer].modified = false
 
-  local window = options.window or {}
+  local window = window_size
   local max_width = math.max(1, vim.o.columns - 4)
   local max_height = math.max(1, vim.o.lines - 4)
   local width = math.min(max_width, math.max(1, math.floor(vim.o.columns * (window.width or 0.5))))
