@@ -7,8 +7,6 @@ local opts = {
   },
 }
 
-local initialized = false
-
 function M.parse(user_opts)
   local problems = {}
 
@@ -52,14 +50,6 @@ end
 
 function M.window()
   return opts.window
-end
-
-function M.mark_initialized()
-  initialized = true
-end
-
-function M.is_initialized()
-  return initialized
 end
 
 return M

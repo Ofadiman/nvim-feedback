@@ -771,13 +771,15 @@ function M.statusline()
   return string.format("󰆉 %d", count)
 end
 
-function M.setup(opts)
-  config.parse(opts)
+M.initialized = false
 
-  if config.is_initialized() then
-    return
+function M.setup(opts)
+  if M.initialized then
+    error("nvim-feedback setup() cannot be called more than once", 0)
   end
-  config.mark_initialized()
+  M.initialized = true
+
+  config.parse(opts)
 
   local group = vim.api.nvim_create_augroup("nvim-feedback", { clear = true })
   vim.api.nvim_create_autocmd("BufWinEnter", {
