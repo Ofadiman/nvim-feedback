@@ -2,13 +2,13 @@
 
 Leave review comments on code in Neovim, then hand them to an AI agent to resolve.
 
-Select a range, write a comment, and it is stored in `feedback.json` at the repository root together with an anchor describing the code it points at. Comments are scoped to the current Git branch and render inline as virtual text. The bundled `nvim-feedback-resolve` skill teaches an agent to locate each comment, apply the change, and delete only the items it actually resolved.
+Select a range and write a comment. The plugin stores the comment in `feedback.json` at the repository root, with an anchor that describes the code it points at. Comments are scoped to the current Git branch and render inline as virtual text. The bundled `nvim-feedback-resolve` skill teaches an agent to locate each comment, apply the change, and delete only the items it actually resolved.
 
 ## Features
 
 - Comment on a cursor line, a linewise selection, or a characterwise selection.
 - Comments are scoped to the current Git branch, so switching branches switches the visible set.
-- Comments follow code as it moves. Every comment stores the selected text, three lines of context on each side, the matching diff hunk, and `HEAD`, which is enough to relocate it after an edit.
+- Comments follow code as it moves. Every comment stores the selected text, three lines of context on each side, the matching diff hunk, and `HEAD`. That anchor is enough to relocate the comment after an edit.
 - Comments that can no longer be located are marked `[stale]` instead of being silently dropped.
 - Inline rendering with a sign, a highlighted range, and the comment as end-of-line virtual text.
 - Telescope picker to search every comment on the branch, with a preview.
@@ -24,22 +24,21 @@ Select a range, write a comment, and it is stored in `feedback.json` at the repo
 
 ## Installation
 
-With [lazy.nvim](https://github.com/folke/lazy.nvim):
+With `vim.pack`, the plugin manager built into Neovim 0.12:
 
 ```lua
-{
-  "Ofadiman/nvim-feedback",
-  dependencies = { "nvim-telescope/telescope.nvim" },
-  lazy = false,
-  config = function()
-    require("nvim-feedback").setup()
-  end,
-}
+vim.pack.add({
+  "https://github.com/nvim-lua/plenary.nvim",
+  "https://github.com/nvim-telescope/telescope.nvim",
+  "https://github.com/Ofadiman/nvim-feedback",
+})
+
+require("nvim-feedback").setup()
 ```
 
-`lazy = false` is required. The plugin registers autocommands that must be active from startup to render comments in buffers you open.
+`vim.pack.add` installs no dependencies of its own, so the list above names `plenary.nvim`, which telescope.nvim requires. Call `setup()` at startup, not on a lazy trigger. The plugin registers autocommands that must be active from startup to render comments in buffers you open.
 
-Add `feedback.json` to `.gitignore` in every repository where you use this plugin. Comments are personal scratch state and should not be committed.
+Add `feedback.json` to `.gitignore` in every repository where you use this plugin. Comments are personal scratch state, and you must not commit them.
 
 ### Installing the agent skill
 
@@ -104,18 +103,8 @@ lualine_x = {
 
 ### Resolving feedback with an agent
 
-Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It reads `feedback.json`, filters to the current branch, locates each comment against the current working tree, applies the smallest change that satisfies it, verifies the result, and removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
+Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It reads `feedback.json` and filters the comments to the current branch. It locates each comment against the current working tree, then applies the smallest change that satisfies the comment. It makes sure that the change works, and it removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local development setup.
-
-## Roadmap
-
-- Semver release tags.
-- A `doc/` vignette so `:help nvim-feedback` works.
-- Broader configuration with validation, if a second option turns out to be worth having.
-
-## License
-
-MIT
