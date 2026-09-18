@@ -1,39 +1,57 @@
 local M = {}
 
-local defaults = {
+local opts = {
   window = {
     width = 0.5,
     height = 0.5,
   },
 }
 
-local current = vim.deepcopy(defaults)
-local rejected = {}
 local initialized = false
 
-local function resolve_fraction(name, value, fallback)
-  if type(value) ~= "number" or value <= 0 or value >= 1 then
-    table.insert(rejected, { name = name, value = value, substitute = fallback })
-    return fallback
+function M.parse(user_opts)
+  local problems = {}
+
+  if user_opts == nil then
+    return opts, problems
   end
 
-  return value
-end
+  if type(user_opts) ~= "table" then
+    table.insert(problems, "opts must be a table")
+    return opts, problems
+  end
 
-function M.resolve(opts)
-  local resolved = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts)
-  rejected = {}
-  resolved.window.width = resolve_fraction("window.width", resolved.window.width, defaults.window.width)
-  resolved.window.height = resolve_fraction("window.height", resolved.window.height, defaults.window.height)
-  current = resolved
+  if user_opts.window ~= nil then
+    if type(user_opts.window) ~= "table" then
+      table.insert(problems, "window must be a table")
+    else
+      if user_opts.window.width ~= nil then
+        if type(user_opts.window.width) == "number" and user_opts.window.width > 0 and user_opts.window.width < 1 then
+          opts.window.width = user_opts.window.width
+        else
+          table.insert(problems, "window.width must be a number between 0 and 1")
+        end
+      end
+
+      if user_opts.window.height ~= nil then
+        if
+          type(user_opts.window.height) == "number"
+          and user_opts.window.height > 0
+          and user_opts.window.height < 1
+        then
+          opts.window.height = user_opts.window.height
+        else
+          table.insert(problems, "window.height must be a number between 0 and 1")
+        end
+      end
+    end
+  end
+
+  return opts, problems
 end
 
 function M.window()
-  return current.window
-end
-
-function M.rejected()
-  return rejected
+  return opts.window
 end
 
 function M.mark_initialized()

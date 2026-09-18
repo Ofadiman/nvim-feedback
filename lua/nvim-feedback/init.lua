@@ -772,11 +772,7 @@ function M.statusline()
 end
 
 function M.setup(opts)
-  opts = opts or {}
-  vim.validate("opts", opts, "table")
-  vim.validate("opts.window", opts.window, "table", true)
-
-  config.resolve(opts)
+  config.parse(opts)
 
   if config.is_initialized() then
     return

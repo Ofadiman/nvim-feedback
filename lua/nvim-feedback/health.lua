@@ -50,23 +50,8 @@ local function check_configuration()
     vim.health.error("setup() was not called, no autocommands are registered and no comments are rendered")
   end
 
-  local rejected = config.rejected()
-  if #rejected == 0 then
-    local window = config.window()
-    vim.health.ok(string.format("window width %s, height %s", window.width, window.height))
-    return
-  end
-
-  for _, entry in ipairs(rejected) do
-    vim.health.warn(
-      string.format(
-        "%s must be a number between 0 and 1, got %s, using %s",
-        entry.name,
-        vim.inspect(entry.value),
-        entry.substitute
-      )
-    )
-  end
+  local window = config.window()
+  vim.health.ok(string.format("window width %s, height %s", window.width, window.height))
 end
 
 local function check_gitignore(root)
