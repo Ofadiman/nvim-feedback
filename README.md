@@ -63,8 +63,6 @@ require("nvim-feedback").setup({
 })
 ```
 
-`setup()` validates the whole table before it does any other work. Both values must be numbers between 0 and 1. A wrong value, a wrong type, or an unknown key never stops the plugin, and the affected option falls back to its default. Run `:checkhealth nvim-feedback` to see the window size that the plugin uses.
-
 ## Usage
 
 The plugin defines no keymaps. Bind the functions you want:
