@@ -1,5 +1,3 @@
-local config = require("nvim-feedback.config")
-local feedback = require("nvim-feedback")
 local git = require("nvim-feedback.git")
 local store = require("nvim-feedback.store")
 
@@ -40,19 +38,6 @@ local function check_environment()
   end
 
   return git_available
-end
-
-local function check_configuration(initialized)
-  vim.health.start("Configuration")
-
-  if initialized then
-    vim.health.ok("setup() was called")
-  else
-    vim.health.error("setup() was not called, no autocommands are registered and no comments are rendered")
-  end
-
-  local window = config.window()
-  vim.health.ok(string.format("window width %s, height %s", window.width, window.height))
 end
 
 local function check_gitignore(root)
@@ -131,7 +116,6 @@ end
 
 function M.check()
   local git_available = check_environment()
-  check_configuration(feedback.initialized)
   check_feedback(git_available)
   check_skill()
 end

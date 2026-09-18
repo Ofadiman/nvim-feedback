@@ -505,7 +505,7 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
     mtimes[context.root] = store.mtime(context.root)
     refresh_root(context.root)
     return true
-  end, { start_insert = true, window = config.window() })
+  end, { start_insert = true, window = M.config.window })
 end
 
 local function edit_feedback(current, item)
@@ -526,7 +526,7 @@ local function edit_feedback(current, item)
     mtimes[current.context.root] = store.mtime(current.context.root)
     refresh_root(current.context.root)
     return true
-  end, { window = config.window() })
+  end, { window = M.config.window })
 end
 
 local function add_current_feedback(current)
@@ -771,15 +771,12 @@ function M.statusline()
   return string.format("󰆉 %d", count)
 end
 
-M.initialized = false
-
 function M.setup(opts)
-  if M.initialized then
+  if M.config then
     error("nvim-feedback setup() cannot be called more than once", 0)
   end
-  M.initialized = true
 
-  config.parse(opts)
+  M.config = config.parse(opts)
 
   local group = vim.api.nvim_create_augroup("nvim-feedback", { clear = true })
   vim.api.nvim_create_autocmd("BufWinEnter", {

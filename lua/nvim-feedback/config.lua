@@ -1,43 +1,38 @@
 local M = {}
 
-local opts = {
-  window = {
-    width = 0.5,
-    height = 0.5,
-  },
-}
-
-function M.parse(user_opts)
+function M.parse(opts)
+  local config = {
+    window = {
+      width = 0.5,
+      height = 0.5,
+    },
+  }
   local problems = {}
 
-  if user_opts == nil then
-    return opts, problems
+  if opts == nil then
+    return config, problems
   end
 
-  if type(user_opts) ~= "table" then
+  if type(opts) ~= "table" then
     table.insert(problems, "opts must be a table")
-    return opts, problems
+    return config, problems
   end
 
-  if user_opts.window ~= nil then
-    if type(user_opts.window) ~= "table" then
+  if opts.window ~= nil then
+    if type(opts.window) ~= "table" then
       table.insert(problems, "window must be a table")
     else
-      if user_opts.window.width ~= nil then
-        if type(user_opts.window.width) == "number" and user_opts.window.width > 0 and user_opts.window.width < 1 then
-          opts.window.width = user_opts.window.width
+      if opts.window.width ~= nil then
+        if type(opts.window.width) == "number" and opts.window.width > 0 and opts.window.width < 1 then
+          config.window.width = opts.window.width
         else
           table.insert(problems, "window.width must be a number between 0 and 1")
         end
       end
 
-      if user_opts.window.height ~= nil then
-        if
-          type(user_opts.window.height) == "number"
-          and user_opts.window.height > 0
-          and user_opts.window.height < 1
-        then
-          opts.window.height = user_opts.window.height
+      if opts.window.height ~= nil then
+        if type(opts.window.height) == "number" and opts.window.height > 0 and opts.window.height < 1 then
+          config.window.height = opts.window.height
         else
           table.insert(problems, "window.height must be a number between 0 and 1")
         end
@@ -45,11 +40,7 @@ function M.parse(user_opts)
     end
   end
 
-  return opts, problems
-end
-
-function M.window()
-  return opts.window
+  return config, problems
 end
 
 return M
