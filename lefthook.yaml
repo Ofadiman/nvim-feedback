@@ -11,6 +11,7 @@ pre-commit:
       run: lua-language-server --check=. --checklevel=Warning
 
     - name: prettier
+      file_types: ["not symlink"]
       run: prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 
