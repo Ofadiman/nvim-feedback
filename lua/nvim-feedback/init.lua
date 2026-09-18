@@ -774,7 +774,8 @@ local initialized = false
 
 function M.setup(opts)
   if initialized then
-    error("nvim-feedback setup() cannot be called more than once", 0)
+    vim.notify("nvim-feedback setup() cannot be called more than once", vim.log.levels.ERROR)
+    return
   end
   initialized = true
 
