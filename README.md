@@ -2,19 +2,59 @@
 
 Leave review comments on code in Neovim, then hand them to an AI agent to resolve.
 
-Select a range and write a comment. The plugin stores the comment in `feedback.json` at the repository root, with an anchor that describes the code it points at. Comments are scoped to the current Git branch and render inline as virtual text. The bundled `nvim-feedback-resolve` skill teaches an agent to locate each comment, apply the change, and delete only the items it actually resolved.
+## Usage
 
-## Features
+The plugin defines no keymaps. Bind the functions you want:
 
-- Comment on a cursor line, a linewise selection, or a characterwise selection.
-- Comments are scoped to the current Git branch, so switching branches switches the visible set.
-- Comments follow code as it moves. Every comment stores the selected text, three lines of context on each side, the matching diff hunk, and `HEAD`. That anchor is enough to relocate the comment after an edit.
-- Comments that can no longer be located are marked `[stale]` instead of being silently dropped.
-- Inline rendering with a sign, a highlighted range, and the comment as end-of-line virtual text.
-- Telescope picker to search every comment on the branch, with a preview.
-- Delete a single comment, or every comment on the current branch.
-- Statusline component showing the number of comments on the branch.
-- External edits to `feedback.json`, including deletions by an agent, are picked up automatically.
+```lua
+local feedback = require("nvim-feedback")
+
+vim.keymap.set({ "n", "x" }, "<leader>ac", feedback.add, { desc = "Add or edit AI feedback" })
+vim.keymap.set({ "n", "x" }, "<leader>ad", feedback.delete, { desc = "Delete AI feedback" })
+vim.keymap.set("n", "<leader>aD", feedback.delete_all, { desc = "Delete all AI feedback" })
+vim.keymap.set("n", "<leader>af", feedback.find, { desc = "Find AI feedback" })
+```
+
+With the keymaps above:
+
+- Comment on the cursor line by pressing `<leader>ac` in normal mode.
+- Comment on whole lines by selecting them with `V` and pressing `<leader>ac`.
+- Comment on part of a line, or on a span that starts or ends mid-line, by selecting it with `v` and pressing `<leader>ac`. Blockwise selections made with `<C-v>` are not supported.
+- Write the comment in the window that opens. `<Esc>` saves the comment and `:q!` discards it. Save the buffer first, because a buffer with unsaved changes cannot take a comment.
+- Edit a comment by pressing `<leader>ac` on a range that already has comments, then picking the comment. Pick `Add new comment` to add another comment on the same range instead.
+- Read comments inline. Each comment shows a sign, a highlighted range, and its text as end-of-line virtual text.
+- Keep editing the code, and comments follow it as it moves. Every comment stores the selected text, three lines of context on each side, the matching diff hunk, and `HEAD`, which is enough to relocate it after an edit. A comment that can no longer be located is marked `[stale]` instead of being silently dropped.
+- Switch Git branches to switch the visible comments. Comments are scoped to the branch they were written on.
+- Search every comment on the branch by pressing `<leader>af`. The Telescope picker shows a preview and jumps to the comment you select.
+- Delete a comment by pressing `<leader>ad` on its range and confirming. When several comments overlap the range, pick one first.
+- Delete every comment on the branch by pressing `<leader>aD` and confirming.
+- Show the comment count for the branch in the statusline, as described in [Statusline](#statusline).
+- Hand the comments to an agent, as described in [Resolving feedback with an agent](#resolving-feedback-with-an-agent). The plugin picks up external edits to `feedback.json`, including deletions by the agent, automatically.
+
+| Function       | Description                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| `setup(opts)`  | Configures the plugin and registers autocommands. Must be called once.                         |
+| `add()`        | Adds a comment on the cursor line or selection. Offers to edit existing comments in the range. |
+| `delete()`     | Deletes a comment in the range, after confirmation.                                            |
+| `delete_all()` | Deletes every comment on the current branch, after confirmation.                               |
+| `find()`       | Opens the Telescope picker over every comment on the branch.                                   |
+| `statusline()` | Returns the comment count for the current buffer's branch, or an empty string.                 |
+
+### Statusline
+
+With [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim):
+
+```lua
+lualine_x = {
+  function()
+    return require("nvim-feedback").statusline()
+  end,
+}
+```
+
+### Resolving feedback with an agent
+
+Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It reads `feedback.json` and filters the comments to the current branch. It locates each comment against the current working tree, then applies the smallest change that satisfies the comment. It makes sure that the change works, and it removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
 
 ## Requirements
 
@@ -62,46 +102,6 @@ require("nvim-feedback").setup({
   },
 })
 ```
-
-## Usage
-
-The plugin defines no keymaps. Bind the functions you want:
-
-```lua
-local feedback = require("nvim-feedback")
-
-vim.keymap.set({ "n", "x" }, "<leader>ac", feedback.add, { desc = "Add or edit AI feedback" })
-vim.keymap.set({ "n", "x" }, "<leader>ad", feedback.delete, { desc = "Delete AI feedback" })
-vim.keymap.set("n", "<leader>aD", feedback.delete_all, { desc = "Delete all AI feedback" })
-vim.keymap.set("n", "<leader>af", feedback.find, { desc = "Find AI feedback" })
-```
-
-| Function       | Description                                                                                    |
-| -------------- | ---------------------------------------------------------------------------------------------- |
-| `setup(opts)`  | Configures the plugin and registers autocommands. Must be called once.                         |
-| `add()`        | Adds a comment on the cursor line or selection. Offers to edit existing comments in the range. |
-| `delete()`     | Deletes a comment in the range, after confirmation.                                            |
-| `delete_all()` | Deletes every comment on the current branch, after confirmation.                               |
-| `find()`       | Opens the Telescope picker over every comment on the branch.                                   |
-| `statusline()` | Returns the comment count for the current buffer's branch, or an empty string.                 |
-
-The buffer must be saved before a comment can be added. In the comment window, `<Esc>` saves and `:q!` discards.
-
-### Statusline
-
-With [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim):
-
-```lua
-lualine_x = {
-  function()
-    return require("nvim-feedback").statusline()
-  end,
-}
-```
-
-### Resolving feedback with an agent
-
-Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It reads `feedback.json` and filters the comments to the current branch. It locates each comment against the current working tree, then applies the smallest change that satisfies the comment. It makes sure that the change works, and it removes only the items it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
 
 ## Contributing
 
