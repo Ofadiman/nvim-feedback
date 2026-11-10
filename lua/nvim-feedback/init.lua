@@ -140,9 +140,9 @@ local function comment_prefix(stale)
   return stale and "[stale] " or ""
 end
 
-local function comment_virtual_text(comment, stale, highlight)
-  local text = comment:gsub("%s*\n%s*", " ")
-  return { { comment_prefix(stale) .. text, highlight } }
+local function comment_virtual_line(comment, stale, highlight, indent)
+  local text = comment:match("[^\n]+") or ""
+  return { { string.rep(" ", indent) }, { "󰆉 " .. comment_prefix(stale) .. text, highlight } }
 end
 
 local function mark_range(buffer, mark)
@@ -277,10 +277,11 @@ refresh_buffer = function(buffer)
         end
         vim.api.nvim_buf_set_extmark(buffer, namespace, line - 1, 0, sign_options)
       end
-      vim.api.nvim_buf_set_extmark(buffer, namespace, start_line - 1, 0, {
-        virt_text = comment_virtual_text(item.comment, stale, virtual_highlight),
-        virt_text_pos = "eol",
-        hl_mode = "combine",
+      local indent = vim.api.nvim_buf_call(buffer, function()
+        return vim.fn.indent(start_line)
+      end)
+      vim.api.nvim_buf_set_extmark(buffer, namespace, end_line - 1, 0, {
+        virt_lines = { comment_virtual_line(item.comment, stale, virtual_highlight, indent) },
         priority = 200,
         strict = false,
       })
