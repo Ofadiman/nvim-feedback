@@ -148,11 +148,45 @@ end
 
 tests["<Esc>"] = MiniTest.new_set()
 
-tests["<Esc>"]["closes the window and discards the changes"] = function()
+tests["<Esc>"]["keeps the window open while the comment has unsaved changes"] = function()
   open_editor("Comment")
+  local window = child.api.nvim_get_current_win()
   child.api.nvim_buf_set_lines(0, 0, -1, false, { "Changed" })
 
   child.type_keys("<Esc>")
+
+  MiniTest.expect.equality(helpers.floating_windows(child), { window })
+  MiniTest.expect.equality(child.api.nvim_buf_get_lines(0, 0, -1, false), { "Changed" })
+  MiniTest.expect.equality(child.bo.modified, true)
+  MiniTest.expect.equality(helpers.notifications(child), {})
+end
+
+tests["<Esc>"]["closes the window once the comment is saved"] = function()
+  open_editor("")
+  helpers.save_comment(child, { "Comment" }, "write")
+
+  child.type_keys("<Esc>")
+
+  MiniTest.expect.equality(helpers.floating_windows(child), {})
+  MiniTest.expect.equality(child.lua_get("_G.saved"), { "Comment" })
+end
+
+tests["<Esc>"]["closes the window of a comment that was not changed"] = function()
+  open_editor("Comment")
+
+  child.type_keys("<Esc>")
+
+  MiniTest.expect.equality(helpers.floating_windows(child), {})
+  MiniTest.expect.equality(helpers.notifications(child), {})
+end
+
+tests[":quit!"] = MiniTest.new_set()
+
+tests[":quit!"]["closes the window and discards the changes"] = function()
+  open_editor("Comment")
+  child.api.nvim_buf_set_lines(0, 0, -1, false, { "Changed" })
+
+  child.cmd("quit!")
 
   MiniTest.expect.equality(helpers.floating_windows(child), {})
   MiniTest.expect.equality(child.lua_get("_G.saved"), {})
