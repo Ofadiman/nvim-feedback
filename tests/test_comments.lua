@@ -138,10 +138,10 @@ tests["add()"]["comments on the cursor line in normal mode"] = function()
     diff_hunk = vim.NIL,
   })
   MiniTest.expect.equality(helpers.virtual_lines(child), {
-    { line = 2, text = "  󰆉 Explain beta", highlight = "DiagnosticVirtualTextWarn" },
+    { line = 2, text = "  󰆉 Explain beta", highlight = "NvimFeedbackText" },
   })
   MiniTest.expect.equality(helpers.highlights(child), { { line = 2 } })
-  MiniTest.expect.equality(helpers.signs(child), { { line = 2, highlight = "DiagnosticSignWarn" } })
+  MiniTest.expect.equality(helpers.signs(child), { { line = 2, highlight = "NvimFeedbackSign" } })
   MiniTest.expect.equality(statusline(), "󰆉 1")
 end
 
@@ -166,7 +166,7 @@ tests["add()"]["comments on the whole lines selected with V"] = function()
   MiniTest.expect.equality(feedback[1].anchor.selected_lines, { "local alpha = 1", "  local beta = 2" })
   MiniTest.expect.equality(helpers.highlights(child), { { line = 1 }, { line = 2 } })
   MiniTest.expect.equality(helpers.virtual_lines(child), {
-    { line = 2, text = "󰆉 Merge these", highlight = "DiagnosticVirtualTextWarn" },
+    { line = 2, text = "󰆉 Merge these", highlight = "NvimFeedbackText" },
   })
 end
 

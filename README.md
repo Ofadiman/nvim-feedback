@@ -100,6 +100,24 @@ require("nvim-feedback").setup({
 })
 ```
 
+### Highlights
+
+Comments in the code use the following highlight groups. Define any of them, or let your colorscheme define them, to change how comments look:
+
+| Group                   | Used for                                         | Default                                                          |
+| ----------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| `NvimFeedbackRange`     | Background of the commented code.                | The `DiagnosticWarn` color blended into the `Normal` background. |
+| `NvimFeedbackSign`      | Sign of a comment.                               | Linked to `DiagnosticSignWarn`.                                  |
+| `NvimFeedbackText`      | Comment text below the code.                     | Linked to `DiagnosticVirtualTextWarn`.                           |
+| `NvimFeedbackStaleSign` | Sign of a comment that can no longer be located. | Linked to `DiagnosticSignError`.                                 |
+| `NvimFeedbackStaleText` | Text of a comment that can no longer be located. | Linked to `DiagnosticVirtualTextError`.                          |
+
+```lua
+vim.api.nvim_set_hl(0, "NvimFeedbackRange", { bg = "#3a3020" })
+```
+
+The plugin never overrides a group that is already defined, and it defines the groups again after every colorscheme change.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local development setup.

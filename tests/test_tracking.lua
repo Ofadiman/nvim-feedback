@@ -55,7 +55,7 @@ tests["editing"]["moves a comment with its lines without storing the move before
   child.type_keys("ggO", "local zero = 0", "<CR>", "local half = 0.5", "<Esc>")
 
   MiniTest.expect.equality(helpers.virtual_lines(child), {
-    { line = 4, text = "󰆉 Explain beta", highlight = "DiagnosticVirtualTextWarn" },
+    { line = 4, text = "󰆉 Explain beta", highlight = "NvimFeedbackText" },
   })
   MiniTest.expect.equality(ranges(), { { start_line = 2, end_line = 2 } })
 end
@@ -67,9 +67,9 @@ tests["editing"]["marks a comment whose lines were deleted as stale"] = function
   child.type_keys("2G", "dd")
 
   MiniTest.expect.equality(helpers.virtual_lines(child), {
-    { line = 2, text = "󰆉 [stale] Explain beta", highlight = "DiagnosticVirtualTextError" },
+    { line = 2, text = "󰆉 [stale] Explain beta", highlight = "NvimFeedbackStaleText" },
   })
-  MiniTest.expect.equality(helpers.signs(child), { { line = 2, highlight = "DiagnosticSignError" } })
+  MiniTest.expect.equality(helpers.signs(child), { { line = 2, highlight = "NvimFeedbackStaleSign" } })
 end
 
 tests["saving"] = MiniTest.new_set()

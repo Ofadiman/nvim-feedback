@@ -1,4 +1,5 @@
 local anchor = require("nvim-feedback.git")
+local highlights = require("nvim-feedback.highlights")
 local picker = require("nvim-feedback.picker")
 local store = require("nvim-feedback.store")
 local ui = require("nvim-feedback.ui")
@@ -282,8 +283,8 @@ refresh_buffer = function(buffer)
       end
 
       local end_text = lines[end_line] or ""
-      local virtual_highlight = stale and "DiagnosticVirtualTextError" or "DiagnosticVirtualTextWarn"
-      local sign_highlight = stale and "DiagnosticSignError" or "DiagnosticSignWarn"
+      local virtual_highlight = stale and "NvimFeedbackStaleText" or "NvimFeedbackText"
+      local sign_highlight = stale and "NvimFeedbackStaleSign" or "NvimFeedbackSign"
       local mark_col = characterwise and start_col or 0
       local extmark_options = {
         end_row = end_line - 1,
@@ -296,9 +297,9 @@ refresh_buffer = function(buffer)
         strict = false,
       }
       if characterwise then
-        extmark_options.hl_group = "CursorLine"
+        extmark_options.hl_group = "NvimFeedbackRange"
       elseif not columns then
-        extmark_options.line_hl_group = "CursorLine"
+        extmark_options.line_hl_group = "NvimFeedbackRange"
       end
 
       local extmark_id = vim.api.nvim_buf_set_extmark(buffer, namespace, start_line - 1, mark_col, extmark_options)
@@ -310,7 +311,7 @@ refresh_buffer = function(buffer)
           strict = false,
         }
         if not characterwise and not columns then
-          sign_options.line_hl_group = "CursorLine"
+          sign_options.line_hl_group = "NvimFeedbackRange"
         end
         vim.api.nvim_buf_set_extmark(buffer, namespace, line - 1, 0, sign_options)
       end
@@ -321,7 +322,7 @@ refresh_buffer = function(buffer)
           if block_end > column.start_col then
             vim.api.nvim_buf_set_extmark(buffer, namespace, line - 1, column.start_col, {
               end_col = block_end,
-              hl_group = "CursorLine",
+              hl_group = "NvimFeedbackRange",
               priority = 200,
               strict = false,
             })
@@ -849,7 +850,13 @@ function M.setup(opts)
   local config = require("nvim-feedback.config").parse(opts)
   ui.configure(config.window)
 
+  highlights.define()
+
   local group = vim.api.nvim_create_augroup("nvim-feedback", { clear = true })
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    group = group,
+    callback = highlights.define,
+  })
   vim.api.nvim_create_autocmd("BufWinEnter", {
     group = group,
     callback = function(args)
