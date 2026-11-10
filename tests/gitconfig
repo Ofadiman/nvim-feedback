@@ -1,0 +1,10 @@
+[user]
+	name = nvim-feedback
+	email = nvim-feedback@example.com
+[init]
+	defaultBranch = main
+[commit]
+	gpgSign = false
+[core]
+	excludesFile = /dev/null
+	hooksPath = /dev/null

@@ -70,6 +70,8 @@ mise run test
 
 The first run clones mini.test and [LuaCov](https://github.com/lunarmodules/luacov) into `deps/`, which git ignores. To pick up a new version after a pinned tag in `mise.toml` changes, delete `deps/` and run the tests again.
 
+The tests run Git with `tests/gitconfig` in place of your global and system Git configuration, so your own Git settings do not change the results. Shared test utilities live in `tests/helpers.lua`, which test files load with `dofile("tests/helpers.lua")`.
+
 Every run also measures line coverage of `lua/nvim-feedback/` and prints a summary per file after the test results. Files that no test loads show 0%. The annotated source, with `*0` marking each line that never ran, is in `coverage/luacov.report.out`, which git ignores.
 
 ## Link the agent skill

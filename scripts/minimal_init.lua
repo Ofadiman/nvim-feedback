@@ -1,5 +1,8 @@
 local COVERAGE_DIRECTORY = vim.fs.joinpath(vim.fn.getcwd(), "coverage")
 
+vim.env.GIT_CONFIG_GLOBAL = vim.fs.joinpath(vim.fn.getcwd(), "tests", "gitconfig")
+vim.env.GIT_CONFIG_NOSYSTEM = "1"
+
 vim.opt.runtimepath:prepend(".")
 vim.opt.runtimepath:append("deps/mini.test")
 package.path = "deps/luacov/src/?.lua;" .. package.path
