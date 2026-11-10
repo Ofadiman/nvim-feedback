@@ -6,6 +6,7 @@ function M.parse(opts)
       width = 0.5,
       height = 0.5,
     },
+    icon = "󰆉",
   }
   local problems = {}
 
@@ -37,6 +38,14 @@ function M.parse(opts)
           table.insert(problems, "window.height must be a number between 0 and 1")
         end
       end
+    end
+  end
+
+  if opts.icon ~= nil then
+    if type(opts.icon) == "string" then
+      config.icon = opts.icon
+    else
+      table.insert(problems, "icon must be a string")
     end
   end
 

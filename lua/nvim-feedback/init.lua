@@ -179,7 +179,7 @@ local function comment_virtual_line(comment, stale, highlight, indent)
   if hidden > 0 then
     text = string.format("%s … (+%d %s)", text, hidden, hidden == 1 and "line" or "lines")
   end
-  return { { string.rep(" ", indent) }, { "󰆉 " .. comment_prefix(stale) .. text, highlight } }
+  return { { string.rep(" ", indent) }, { ui.labeled(comment_prefix(stale) .. text), highlight } }
 end
 
 local function mark_range(buffer, mark)
@@ -820,7 +820,7 @@ function M.statusline()
   if count == nil then
     return ""
   end
-  return string.format("󰆉 %d", count)
+  return ui.labeled(tostring(count))
 end
 
 local initialized = false
@@ -833,7 +833,7 @@ function M.setup(opts)
   initialized = true
 
   local config = require("nvim-feedback.config").parse(opts)
-  ui.configure(config.window)
+  ui.configure(config)
 
   highlights.define()
 

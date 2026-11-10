@@ -1,10 +1,17 @@
 local M = {}
 
 local active_window = nil
-local window_size = {}
+local settings = require("nvim-feedback.config").parse(nil)
 
-function M.configure(window)
-  window_size = window
+function M.configure(config)
+  settings = config
+end
+
+function M.labeled(text)
+  if settings.icon == "" then
+    return text
+  end
+  return settings.icon .. " " .. text
 end
 
 local function close_active_window()
@@ -49,11 +56,11 @@ function M.open(value, on_save, options)
   vim.api.nvim_buf_set_lines(buffer, 0, -1, false, initial_lines(value))
   vim.bo[buffer].modified = false
 
-  local window = window_size
+  local window = settings.window
   local max_width = math.max(1, vim.o.columns - 4)
   local max_height = math.max(1, vim.o.lines - 4)
-  local width = math.min(max_width, math.max(1, math.floor(vim.o.columns * (window.width or 0.5))))
-  local height = math.min(max_height, math.max(1, math.floor(vim.o.lines * (window.height or 0.5))))
+  local width = math.min(max_width, math.max(1, math.floor(vim.o.columns * window.width)))
+  local height = math.min(max_height, math.max(1, math.floor(vim.o.lines * window.height)))
   local row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1)
   local column = math.max(0, math.floor((vim.o.columns - width) / 2))
 
@@ -61,7 +68,7 @@ function M.open(value, on_save, options)
     relative = "editor",
     style = "minimal",
     border = "double",
-    title = " 󰆉 AI feedback ",
+    title = " " .. M.labeled("AI feedback") .. " ",
     title_pos = "center",
     footer = " :w save · :wq save and close · :q! discard ",
     footer_pos = "center",

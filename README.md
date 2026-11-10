@@ -89,7 +89,7 @@ skills add Ofadiman/nvim-feedback --global --agent claude-code,codex --skill nvi
 
 ## Configuration
 
-`setup()` must be called explicitly. The only option is the size of the comment editor window, given as fractions of the editor:
+`setup()` must be called explicitly. It takes the following options, shown with their defaults:
 
 ```lua
 require("nvim-feedback").setup({
@@ -97,8 +97,12 @@ require("nvim-feedback").setup({
     width = 0.5,
     height = 0.5,
   },
+  icon = "󰆉",
 })
 ```
+
+- `window.width` and `window.height` set the size of the comment editor window, as fractions of the editor.
+- `icon` marks comment text in the code, the title of the comment editor window, and the count returned by `statusline()`. The default requires a [Nerd Font](https://www.nerdfonts.com). Without one, set a plain character such as `">"`, or `""` to show no icon.
 
 ### Highlights
 

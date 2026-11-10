@@ -855,6 +855,26 @@ tests["setup()"]["sizes the comment window with the configured fractions of the 
   )
 end
 
+tests["setup()"]["marks comments and the statusline count with the configured icon"] = function()
+  write_feedback({ comment({ comment = "Explain beta", range = { start_line = 2, end_line = 2 } }) })
+  helpers.start_editor(child, { icon = ">" })
+
+  open_file()
+
+  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "  > Explain beta")
+  MiniTest.expect.equality(statusline(), "> 1")
+end
+
+tests["setup()"]["leaves the icon out of comments and the statusline count when it is empty"] = function()
+  write_feedback({ comment({ comment = "Explain beta", range = { start_line = 2, end_line = 2 } }) })
+  helpers.start_editor(child, { icon = "" })
+
+  open_file()
+
+  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "  Explain beta")
+  MiniTest.expect.equality(statusline(), "1")
+end
+
 tests["setup()"]["shows the comments of the buffer that was open before it was called"] = function()
   write_feedback({ comment({ comment = "Explain beta", range = { start_line = 2, end_line = 2 } }) })
   child.restart({ "-u", "scripts/minimal_init.lua" })

@@ -7,7 +7,7 @@ tests["parse()"] = MiniTest.new_set()
 tests["parse()"]["returns defaults when opts is nil"] = function()
   local parsed, problems = config.parse(nil)
 
-  MiniTest.expect.equality(parsed, { window = { width = 0.5, height = 0.5 } })
+  MiniTest.expect.equality(parsed, { window = { width = 0.5, height = 0.5 }, icon = "󰆉" })
   MiniTest.expect.equality(problems, {})
 end
 
@@ -28,7 +28,7 @@ end
 tests["parse()"]["reports opts that are not a table and keeps the defaults"] = function()
   local parsed, problems = config.parse("wide")
 
-  MiniTest.expect.equality(parsed, { window = { width = 0.5, height = 0.5 } })
+  MiniTest.expect.equality(parsed, { window = { width = 0.5, height = 0.5 }, icon = "󰆉" })
   MiniTest.expect.equality(problems, { "opts must be a table" })
 end
 
@@ -54,6 +54,27 @@ tests["parse()"]["reports window fractions of 0 and 1 and keeps the defaults"] =
     "window.width must be a number between 0 and 1",
     "window.height must be a number between 0 and 1",
   })
+end
+
+tests["parse()"]["applies a plain-text icon"] = function()
+  local parsed, problems = config.parse({ icon = ">" })
+
+  MiniTest.expect.equality(parsed.icon, ">")
+  MiniTest.expect.equality(problems, {})
+end
+
+tests["parse()"]["accepts an empty icon"] = function()
+  local parsed, problems = config.parse({ icon = "" })
+
+  MiniTest.expect.equality(parsed.icon, "")
+  MiniTest.expect.equality(problems, {})
+end
+
+tests["parse()"]["reports an icon that is not a string and keeps the default"] = function()
+  local parsed, problems = config.parse({ icon = false })
+
+  MiniTest.expect.equality(parsed.icon, "󰆉")
+  MiniTest.expect.equality(problems, { "icon must be a string" })
 end
 
 return tests

@@ -27,6 +27,16 @@ local function window_layout()
   ]])
 end
 
+local function window_title()
+  return child.lua([[
+    local text = {}
+    for _, chunk in ipairs(vim.api.nvim_win_get_config(0).title) do
+      table.insert(text, chunk[1])
+    end
+    return table.concat(text)
+  ]])
+end
+
 local tests = MiniTest.new_set({
   hooks = {
     pre_case = function()
@@ -51,7 +61,7 @@ tests["open()"]["opens a centered floating window that fills half of the editor 
 end
 
 tests["open()"]["sizes the window with the configured fractions of the editor"] = function()
-  child.lua([[require("nvim-feedback.ui").configure({ width = 0.8, height = 0.25 })]])
+  child.lua([[require("nvim-feedback.ui").configure({ window = { width = 0.8, height = 0.25 }, icon = "󰆉" })]])
 
   open_editor("")
 
@@ -59,11 +69,33 @@ tests["open()"]["sizes the window with the configured fractions of the editor"] 
 end
 
 tests["open()"]["keeps the window inside the editor"] = function()
-  child.lua([[require("nvim-feedback.ui").configure({ width = 0.99, height = 0.99 })]])
+  child.lua([[require("nvim-feedback.ui").configure({ window = { width = 0.99, height = 0.99 }, icon = "󰆉" })]])
 
   open_editor("")
 
   MiniTest.expect.equality(window_layout(), { relative = "editor", width = 76, height = 20, row = 1, col = 2 })
+end
+
+tests["open()"]["shows the icon in the title"] = function()
+  open_editor("")
+
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback ")
+end
+
+tests["open()"]["shows the configured icon in the title"] = function()
+  child.lua([[require("nvim-feedback.ui").configure({ window = { width = 0.5, height = 0.5 }, icon = ">" })]])
+
+  open_editor("")
+
+  MiniTest.expect.equality(window_title(), " > AI feedback ")
+end
+
+tests["open()"]["leaves the icon out of the title when it is empty"] = function()
+  child.lua([[require("nvim-feedback.ui").configure({ window = { width = 0.5, height = 0.5 }, icon = "" })]])
+
+  open_editor("")
+
+  MiniTest.expect.equality(window_title(), " AI feedback ")
 end
 
 tests["open()"]["shows the existing comment in an unmodified markdown buffer"] = function()
