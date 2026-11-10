@@ -30,11 +30,11 @@ local tests = MiniTest.new_set({
 
 tests["setup()"] = MiniTest.new_set()
 
-tests["setup()"]["links the text groups to the diagnostic virtual text groups"] = function()
+tests["setup()"]["links the comment text to the warning virtual text and stale text to Comment"] = function()
   setup()
 
   MiniTest.expect.equality(highlight("NvimFeedbackText"), { link = "DiagnosticVirtualTextWarn", default = true })
-  MiniTest.expect.equality(highlight("NvimFeedbackStaleText"), { link = "DiagnosticVirtualTextError", default = true })
+  MiniTest.expect.equality(highlight("NvimFeedbackStaleText"), { link = "Comment", default = true })
 end
 
 tests["setup()"]["tints the background of the range group with the warning color"] = function()

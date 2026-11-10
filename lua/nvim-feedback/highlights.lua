@@ -4,7 +4,7 @@ local RANGE_TINT = 0.15
 
 local LINKS = {
   NvimFeedbackText = "DiagnosticVirtualTextWarn",
-  NvimFeedbackStaleText = "DiagnosticVirtualTextError",
+  NvimFeedbackStaleText = "Comment",
 }
 
 local function blend(foreground, background, alpha)
