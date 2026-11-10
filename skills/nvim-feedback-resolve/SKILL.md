@@ -1,30 +1,27 @@
 ---
 name: nvim-feedback-resolve
-description: Resolve branch-scoped code feedback recorded by Neovim in a Git repository's feedback.json file. Use when the user invokes nvim-feedback-resolve, asks to apply editor feedback, or wants AI feedback comments addressed one by one.
+description: Resolve the Neovim feedback comments on the current branch, applying each change request and answering each question.
 disable-model-invocation: true
 ---
 
-# Resolve Feedback
+# Resolve feedback
 
-Apply every safely locatable feedback item. Remove only items whose requested change is complete and verified.
+Each feedback item is a **change request** or a **question**. An item is **resolved** once its change is applied and verified, or once its question is answered.
 
-## Workflow
+1. Run `git rev-parse --show-toplevel` and `git branch --show-current`, and stop when HEAD is detached. Read `<root>/feedback.json`. Stop without edits when the file is missing, has no top-level `feedback` array, or holds no item whose `branch` is the current branch.
+2. Snapshot the current branch's items and process them in order. Before working on an item, re-read it by `id` and branch, because the editor may add, edit, or remove items while you work.
+3. Validate the item. It carries a unique string `id`, a nonblank `branch`, a repository-relative `file`, a 1-based inclusive line `range`, a nonblank `comment`, `created_at`, and a complete `anchor`. A characterwise item also carries a 0-based byte `start_col`, an end-exclusive `end_col`, and `anchor.selected_text`. An item that fails this check, or whose `file` is absolute or escapes the repository root, stays unresolved.
+4. Locate the target in `file`, taking the first rule that succeeds:
+   - Characterwise: the stored line and column range, when its text equals `anchor.selected_text`.
+   - Characterwise: an exact match of `anchor.selected_text`, preferring the unique match that `context_before`, `context_after`, and the stored position support.
+   - Linewise: the stored line range, when its lines equal `anchor.selected_lines`.
+   - Linewise: an exact match of `anchor.selected_lines`, preferring the unique match that `context_before` and `context_after` support.
+   - Either: `anchor.diff_hunk` and `anchor.head`, to trace code that moved or changed since the comment was written.
 
-1. Run `git rev-parse --show-toplevel` and `git branch --show-current` from current worktree. Stop when HEAD is detached. Read `<root>/feedback.json`.
-2. Stop without edits when file is missing or current branch has no feedback. Require top-level `feedback` array. Require each item to contain unique string `id`, nonblank `branch`, repository-relative `file`, 1-based inclusive line `range`, nonblank `comment`, `created_at`, and complete `anchor`. Characterwise ranges also contain 0-based byte `start_col` and end-exclusive `end_col` plus `anchor.selected_text`. Reject absolute paths and paths escaping repository root.
-3. Read repository instructions and inspect current worktree before changing files. Preserve unrelated user changes. Never commit unless user explicitly requests it.
-4. Process snapshot of items whose `branch` equals current branch in order. Re-read current item by `id` and branch before working because editor may add, edit, or remove items concurrently.
-5. Locate target in `file` using this order:
-   - For characterwise feedback, accept stored line and column range when it exactly matches `anchor.selected_text`.
-   - Search for exact `anchor.selected_text`; prefer unique match supported by `context_before`, `context_after`, and stored position.
-   - For linewise feedback, accept stored inclusive line range when it exactly matches `anchor.selected_lines`.
-   - Search for exact `anchor.selected_lines`; prefer unique match supported by `context_before` and `context_after`.
-   - Use `anchor.diff_hunk` and `anchor.head` to understand moved or changed code when exact text no longer exists.
-   - Leave item unresolved when file is missing, target is ambiguous, or requested behavior is unclear. Continue with next safe item.
-6. Inspect enough surrounding code and tests to understand request. Apply smallest complete change that satisfies comment. Account for dependencies and overlapping later feedback.
-7. Run narrow relevant checks after each change when practical. Treat clear code inspection as verification only when no executable check exists. Leave item unresolved when failures prevent confidence.
-8. Immediately before marking item resolved, re-read feedback file. Remove only matching `id` on current branch; preserve every other item across all branches. Write valid JSON.
-9. Re-locate next item against updated working tree instead of trusting stale line numbers.
-10. Run suitable aggregate checks after all resolved changes. Report resolved IDs, unresolved IDs with reasons, files changed, and verification results.
+   The item stays unresolved when the file is missing or the target is ambiguous.
 
-Do not process or delete feedback from another branch. Do not delete feedback because code was edited. Delete it only after comment is satisfied. If current code already satisfies comment, verify that fact before removing item.
+5. Classify the comment by intent.
+6. Change request: apply the smallest complete change that satisfies the comment, accounting for dependencies and for later items on the same code. Run the narrowest relevant checks; clear code inspection counts as verification only when no executable check exists. When the code already satisfies the comment, verify that and count the item resolved. The item stays unresolved when failures leave you unsure the change is right.
+7. Question: work out the answer from the code and its history, leaving the code as it is, and draft it for the report in the shape of `answer-template.md`.
+8. Remove each item as soon as it is resolved: re-read `feedback.json` and find the item by `id` on the current branch. When its `comment` differs from the text you resolved, process it again from step 4. Otherwise delete only that item, keep every other item on every branch, and write valid JSON.
+9. Once every item is processed, run suitable aggregate checks if any code changed. Report the IDs of resolved change requests, the IDs of unresolved items with the reason for each, the files changed, and the verification results, followed by an `Answers` section holding every drafted answer.
