@@ -97,10 +97,39 @@ local function next_character_column(line, column)
   return next_column == -1 and #line or next_column
 end
 
+local function block_range()
+  local region = vim.fn.getregionpos(vim.fn.getpos("v"), vim.fn.getpos("."), {
+    type = "\22",
+    exclusive = vim.o.selection == "exclusive",
+    eol = true,
+  })
+  local to_line_end = vim.fn.winsaveview().curswant == vim.v.maxcol
+  local columns = {}
+  local covered = false
+  for _, segment in ipairs(region) do
+    local first = segment[1]
+    local last = segment[2]
+    local text = vim.api.nvim_buf_get_lines(0, first[2] - 1, first[2], false)[1] or ""
+    local start_col = math.min(math.max(first[3] - 1, 0), #text)
+    local end_col = #text
+    if not to_line_end and last[3] <= #text then
+      end_col = next_character_column(text, math.max(last[3] - 1, 0))
+    end
+    end_col = math.max(end_col, start_col)
+    covered = covered or end_col > start_col
+    table.insert(columns, { start_col = start_col, end_col = end_col })
+  end
+
+  if not covered then
+    return nil, nil, "AI feedback requires a non-empty selection"
+  end
+  return region[1][1][2], region[#region][1][2], nil, nil, nil, columns
+end
+
 local function target_range()
   local mode = vim.fn.mode()
   if mode == "\22" then
-    return nil, nil, "Blockwise selection is not supported"
+    return block_range()
   end
 
   if mode == "v" then
@@ -220,6 +249,7 @@ refresh_buffer = function(buffer)
   for _, item in ipairs(data.feedback) do
     if item.branch == context.branch and item.file == context.relative_path then
       local characterwise = item.range.start_col ~= nil
+      local columns = item.range.columns
       local start_line, end_line, start_col, end_col = anchor.locate(lines, item)
       local stale = not start_line
       if stale then
@@ -260,7 +290,7 @@ refresh_buffer = function(buffer)
       }
       if characterwise then
         extmark_options.hl_group = "CursorLine"
-      else
+      elseif not columns then
         extmark_options.line_hl_group = "CursorLine"
       end
 
@@ -272,10 +302,24 @@ refresh_buffer = function(buffer)
           sign_hl_group = sign_highlight,
           strict = false,
         }
-        if not characterwise then
+        if not characterwise and not columns then
           sign_options.line_hl_group = "CursorLine"
         end
         vim.api.nvim_buf_set_extmark(buffer, namespace, line - 1, 0, sign_options)
+      end
+      if columns then
+        for line = start_line, end_line do
+          local column = columns[line - start_line + 1]
+          local block_end = math.min(column.end_col, #(lines[line] or ""))
+          if block_end > column.start_col then
+            vim.api.nvim_buf_set_extmark(buffer, namespace, line - 1, column.start_col, {
+              end_col = block_end,
+              hl_group = "CursorLine",
+              priority = 200,
+              strict = false,
+            })
+          end
+        end
       end
       local indent = vim.api.nvim_buf_call(buffer, function()
         return vim.fn.indent(start_line)
@@ -392,7 +436,7 @@ local function current_entries()
     return nil, context_error
   end
 
-  local start_line, end_line, range_error, start_col, end_col = target_range()
+  local start_line, end_line, range_error, start_col, end_col, columns = target_range()
   if not start_line then
     return nil, range_error
   end
@@ -437,6 +481,7 @@ local function current_entries()
       end_line = end_line,
       start_col = start_col,
       end_col = end_col,
+      columns = columns,
     },
   }
 end
@@ -480,7 +525,7 @@ local function save_comment(root, branch, id, text)
   return true
 end
 
-local function create_feedback(buffer, context, start_line, end_line, start_col, end_col)
+local function create_feedback(buffer, context, start_line, end_line, start_col, end_col, columns)
   if vim.bo[buffer].modified then
     notify_error("Save buffer before adding AI feedback")
     return
@@ -504,11 +549,23 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
     },
     comment = "",
     created_at = created_at,
-    anchor = anchor.snapshot(context.root, context.relative_path, lines, start_line, end_line, start_col, end_col),
+    anchor = anchor.snapshot(
+      context.root,
+      context.relative_path,
+      lines,
+      start_line,
+      end_line,
+      start_col,
+      end_col,
+      columns
+    ),
   }
   if start_col then
     entry.range.start_col = start_col
     entry.range.end_col = end_col
+  end
+  if columns then
+    entry.range.columns = columns
   end
 
   local saved = false
@@ -547,7 +604,15 @@ function M.add()
   end
 
   local range = current.range
-  create_feedback(current.buffer, current.context, range.start_line, range.end_line, range.start_col, range.end_col)
+  create_feedback(
+    current.buffer,
+    current.context,
+    range.start_line,
+    range.end_line,
+    range.start_col,
+    range.end_col,
+    range.columns
+  )
 end
 
 function M.edit()
@@ -708,13 +773,14 @@ function M.find()
     refresh_buffer(target_buffer)
 
     local start_line = item.range.start_line
-    local start_col = item.range.start_col or 0
+    local block_col = item.range.columns and item.range.columns[1].start_col or 0
+    local start_col = item.range.start_col or block_col
     local info = buffers[target_buffer]
     local mark = info and info.marks[item.id]
     if mark then
       local mark_line, _, mark_col = mark_range(target_buffer, mark)
       start_line = mark_line or start_line
-      start_col = mark.characterwise and mark_col or 0
+      start_col = mark.characterwise and mark_col or block_col
     end
 
     local line_count = vim.api.nvim_buf_line_count(target_buffer)

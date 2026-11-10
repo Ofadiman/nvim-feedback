@@ -1,7 +1,7 @@
 local M = {}
 
 local function commented_text(item)
-  local text = item.anchor.selected_text or table.concat(item.anchor.selected_lines, "\n")
+  local text = item.anchor.selected_text or table.concat(item.anchor.selected_block or item.anchor.selected_lines, "\n")
   return (vim.trim(text):gsub("%s+", " "))
 end
 

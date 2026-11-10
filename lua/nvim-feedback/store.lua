@@ -53,6 +53,43 @@ local function validate_columns(item)
   return type(item.anchor.selected_text) == "string" and item.anchor.selected_text ~= ""
 end
 
+local function is_column(value)
+  return type(value) == "number" and value % 1 == 0 and value >= 0
+end
+
+local function validate_block(item)
+  local columns = item.range.columns
+  local block = item.anchor.selected_block
+  if columns == nil and block == nil then
+    return true
+  end
+
+  if item.range.start_col ~= nil or not validate_lines(block) then
+    return false
+  end
+  if type(columns) ~= "table" or not vim.islist(columns) then
+    return false
+  end
+
+  local line_count = item.range.end_line - item.range.start_line + 1
+  if #columns ~= line_count or #block ~= line_count then
+    return false
+  end
+
+  local covered = false
+  for index, column in ipairs(columns) do
+    if type(column) ~= "table" or not is_column(column.start_col) or not is_column(column.end_col) then
+      return false
+    end
+    if column.end_col < column.start_col then
+      return false
+    end
+    covered = covered or block[index] ~= ""
+  end
+
+  return covered
+end
+
 local function validate_item(item)
   if type(item) ~= "table" then
     return false
@@ -119,7 +156,7 @@ local function validate_item(item)
     return false
   end
 
-  if not validate_columns(item) then
+  if not validate_columns(item) or not validate_block(item) then
     return false
   end
 

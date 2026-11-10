@@ -124,6 +124,15 @@ local function selected_text(lines, start_line, end_line, start_col, end_col)
   return table.concat(selected, "\n")
 end
 
+local function block_text(lines, start_line, columns)
+  local result = {}
+  for index, column in ipairs(columns) do
+    local line = lines[start_line + index - 1] or ""
+    table.insert(result, line:sub(column.start_col + 1, column.end_col))
+  end
+  return result
+end
+
 local function line_starts(lines)
   local starts = {}
   local offset = 1
@@ -240,7 +249,7 @@ function M.relative(root, file_path)
   return file_path:sub(#prefix + 1)
 end
 
-function M.snapshot(root, relative_path, lines, start_line, end_line, start_col, end_col)
+function M.snapshot(root, relative_path, lines, start_line, end_line, start_col, end_col, columns)
   local head = run(root, { "rev-parse", "--verify", "HEAD" }) or vim.NIL
   local diff = nil
   if head ~= vim.NIL then
@@ -256,6 +265,9 @@ function M.snapshot(root, relative_path, lines, start_line, end_line, start_col,
   }
   if start_col then
     result.selected_text = selected_text(lines, start_line, end_line, start_col, end_col)
+  end
+  if columns then
+    result.selected_block = block_text(lines, start_line, columns)
   end
   return result
 end

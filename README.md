@@ -20,7 +20,8 @@ With the keymaps above:
 
 - Comment on the cursor line by pressing `<leader>ac` in normal mode.
 - Comment on whole lines by selecting them with `V` and pressing `<leader>ac`.
-- Comment on part of a line, or on a span that starts or ends mid-line, by selecting it with `v` and pressing `<leader>ac`. Blockwise selections made with `<C-v>` are not supported.
+- Comment on part of a line, or on a span that starts or ends mid-line, by selecting it with `v` and pressing `<leader>ac`.
+- Comment on a rectangular block of text by selecting it with `<C-v>` and pressing `<leader>ac`. A block extended with `$` covers each line to its end.
 - Write the comment in the window that opens. `:w` saves the comment and keeps the window open, `:wq` saves it and closes the window, and `:q` closes the window once every change is saved. `:q!` or `<Esc>` in normal mode closes the window and discards unsaved changes. Save the buffer first, because a buffer with unsaved changes cannot take a comment.
 - Edit a comment by pressing `<leader>ae` on its range. When several comments overlap the range, pick one first.
 - Read comments inline. Each comment shows a sign, a highlighted range, and the first line of its text on a virtual line below the range.
