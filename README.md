@@ -21,17 +21,11 @@ With the keymaps above:
 - Comment on the cursor line by pressing `<leader>ac` in normal mode.
 - Comment on whole lines by selecting them with `V` and pressing `<leader>ac`.
 - Comment on part of a line, or on a span that starts or ends mid-line, by selecting it with `v` and pressing `<leader>ac`.
-- Comment on a rectangular block of text by selecting it with `<C-v>` and pressing `<leader>ac`. A block extended with `$` covers each line to its end.
-- Write the comment in the window that opens. `:w` saves the comment and keeps the window open, `:wq` saves it and closes the window, and `:q` or `<Esc>` in normal mode closes the window once every change is saved. `:q!` closes the window and discards unsaved changes. Save the buffer first, because a buffer with unsaved changes cannot take a comment.
-- Edit a comment by pressing `<leader>ae` on its range. When several comments overlap the range, pick one first.
-- Read comments inline. Each comment shows a sign, a highlighted range, and the first line of its text on a virtual line below the range.
-- Keep editing the code, and comments follow it as it moves. A comment that can no longer be located is marked `[stale]` instead of being silently dropped.
-- Switch Git branches to switch the visible comments. Comments are scoped to the branch they were written on.
-- Search the comments on the branch by their text by pressing `<leader>af`. The Telescope picker lists the file and commented code of each match, previews the full comment, and jumps to the comment you select.
-- Delete a comment by pressing `<leader>ad` on its range and confirming. When several comments overlap the range, pick one first.
-- Delete every comment on the branch by pressing `<leader>aD` and confirming.
-- Show the comment count for the branch in the statusline, as described in [Statusline](#statusline).
-- Hand the comments to an agent, as described in [Resolving feedback with an agent](#resolving-feedback-with-an-agent). Comments the agent resolves disappear from Neovim on their own.
+- Comment on a rectangular block of text by selecting it with `<C-v>` and pressing `<leader>ac`.
+- Edit a comment by pressing `<leader>ae` on its range.
+- Search the comments on the branch by their text by pressing `<leader>af`.
+- Delete a comment by pressing `<leader>ad` on its range and confirming.
+- Delete every comment by pressing `<leader>aD` and confirming.
 
 | Function       | Description                                                                    |
 | -------------- | ------------------------------------------------------------------------------ |
