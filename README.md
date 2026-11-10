@@ -9,7 +9,8 @@ The plugin defines no keymaps. Bind the functions you want:
 ```lua
 local feedback = require("nvim-feedback")
 
-vim.keymap.set({ "n", "x" }, "<leader>ac", feedback.add, { desc = "Add or edit AI feedback" })
+vim.keymap.set({ "n", "x" }, "<leader>ac", feedback.add, { desc = "Add AI feedback" })
+vim.keymap.set({ "n", "x" }, "<leader>ae", feedback.edit, { desc = "Edit AI feedback" })
 vim.keymap.set({ "n", "x" }, "<leader>ad", feedback.delete, { desc = "Delete AI feedback" })
 vim.keymap.set("n", "<leader>aD", feedback.delete_all, { desc = "Delete all AI feedback" })
 vim.keymap.set("n", "<leader>af", feedback.find, { desc = "Find AI feedback" })
@@ -21,7 +22,7 @@ With the keymaps above:
 - Comment on whole lines by selecting them with `V` and pressing `<leader>ac`.
 - Comment on part of a line, or on a span that starts or ends mid-line, by selecting it with `v` and pressing `<leader>ac`. Blockwise selections made with `<C-v>` are not supported.
 - Write the comment in the window that opens. `<Esc>` saves the comment and `:q!` discards it. Save the buffer first, because a buffer with unsaved changes cannot take a comment.
-- Edit a comment by pressing `<leader>ac` on a range that already has comments, then picking the comment. Pick `Add new comment` to add another comment on the same range instead.
+- Edit a comment by pressing `<leader>ae` on its range. When several comments overlap the range, pick one first.
 - Read comments inline. Each comment shows a sign, a highlighted range, and its text as end-of-line virtual text.
 - Keep editing the code, and comments follow it as it moves. A comment that can no longer be located is marked `[stale]` instead of being silently dropped.
 - Switch Git branches to switch the visible comments. Comments are scoped to the branch they were written on.
@@ -31,14 +32,15 @@ With the keymaps above:
 - Show the comment count for the branch in the statusline, as described in [Statusline](#statusline).
 - Hand the comments to an agent, as described in [Resolving feedback with an agent](#resolving-feedback-with-an-agent). Comments the agent resolves disappear from Neovim on their own.
 
-| Function       | Description                                                                                    |
-| -------------- | ---------------------------------------------------------------------------------------------- |
-| `setup(opts)`  | Configures the plugin. Must be called once.                                                    |
-| `add()`        | Adds a comment on the cursor line or selection. Offers to edit existing comments in the range. |
-| `delete()`     | Deletes a comment in the range, after confirmation.                                            |
-| `delete_all()` | Deletes every comment on the current branch, after confirmation.                               |
-| `find()`       | Opens the Telescope picker over every comment on the branch.                                   |
-| `statusline()` | Returns the comment count for the current buffer's branch, or an empty string.                 |
+| Function       | Description                                                                    |
+| -------------- | ------------------------------------------------------------------------------ |
+| `setup(opts)`  | Configures the plugin. Must be called once.                                    |
+| `add()`        | Adds a comment on the cursor line or selection.                                |
+| `edit()`       | Edits a comment in the range.                                                  |
+| `delete()`     | Deletes a comment in the range, after confirmation.                            |
+| `delete_all()` | Deletes every comment on the current branch, after confirmation.               |
+| `find()`       | Opens the Telescope picker over every comment on the branch.                   |
+| `statusline()` | Returns the comment count for the current buffer's branch, or an empty string. |
 
 ### Statusline
 

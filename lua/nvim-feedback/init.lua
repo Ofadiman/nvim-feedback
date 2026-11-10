@@ -528,11 +528,6 @@ local function edit_feedback(current, item)
   end)
 end
 
-local function add_current_feedback(current)
-  local range = current.range
-  create_feedback(current.buffer, current.context, range.start_line, range.end_line, range.start_col, range.end_col)
-end
-
 function M.add()
   local current, current_error = current_entries()
   if not current then
@@ -540,34 +535,22 @@ function M.add()
     return
   end
 
-  if #current.feedback == 0 then
-    add_current_feedback(current)
+  local range = current.range
+  create_feedback(current.buffer, current.context, range.start_line, range.end_line, range.start_col, range.end_col)
+end
+
+function M.edit()
+  local current, current_error = current_entries()
+  if not current then
+    notify_error(current_error)
     return
   end
 
-  local choices = { { add = true } }
-  for _, item in ipairs(current.feedback) do
-    table.insert(choices, { item = item })
-  end
-
-  vim.ui.select(choices, {
-    prompt = "Add or edit AI feedback",
-    format_item = function(choice)
-      if choice.add then
-        return "Add new comment"
-      end
-      local text = choice.item.comment:match("[^\n]+") or ""
-      return string.format("Edit L%d-L%d %s", choice.item.range.start_line, choice.item.range.end_line, text)
-    end,
-  }, function(choice)
-    if not choice then
+  choose_feedback(current.feedback, "Edit AI feedback", function(item)
+    if not item then
       return
     end
-    if choice.add then
-      add_current_feedback(current)
-      return
-    end
-    edit_feedback(current, choice.item)
+    edit_feedback(current, item)
   end)
 end
 
