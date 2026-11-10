@@ -170,7 +170,14 @@ local function comment_prefix(stale)
 end
 
 local function comment_virtual_line(comment, stale, highlight, indent)
-  local text = comment:match("[^\n]+") or ""
+  local lines = vim.tbl_filter(function(line)
+    return line:match("%S") ~= nil
+  end, vim.split(comment, "\n", { plain = true }))
+  local text = lines[1] or ""
+  local hidden = #lines - 1
+  if hidden > 0 then
+    text = string.format("%s … (+%d %s)", text, hidden, hidden == 1 and "line" or "lines")
+  end
   return { { string.rep(" ", indent) }, { "󰆉 " .. comment_prefix(stale) .. text, highlight } }
 end
 

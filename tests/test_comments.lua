@@ -210,14 +210,23 @@ tests["add()"]["covers every byte of a selected multibyte character"] = function
   MiniTest.expect.equality(feedback[1].anchor.selected_text, "ï")
 end
 
-tests["add()"]["shows only the first line of a comment that has several"] = function()
+tests["add()"]["shows the first line of a longer comment and counts the other lines that have text"] = function()
   open_file()
 
   child.type_keys("<F2>")
-  helpers.save_comment(child, { "Summary", "", "Details" })
+  helpers.save_comment(child, { "Summary", "", "Details", "  ", "More details" })
 
-  MiniTest.expect.equality(comments(), { "Summary\n\nDetails" })
-  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "󰆉 Summary")
+  MiniTest.expect.equality(comments(), { "Summary\n\nDetails\n  \nMore details" })
+  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "󰆉 Summary … (+2 lines)")
+end
+
+tests["add()"]["counts a single other line of a comment in the singular"] = function()
+  open_file()
+
+  child.type_keys("<F2>")
+  helpers.save_comment(child, { "Summary", "Details" })
+
+  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "󰆉 Summary … (+1 line)")
 end
 
 tests["add()"]["updates the new comment when its window is saved again"] = function()
