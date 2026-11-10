@@ -1,6 +1,6 @@
 {
   "runtime.version": "LuaJIT",
-  "diagnostics.globals": ["vim"],
+  "diagnostics.globals": ["vim", "MiniTest"],
   "workspace.checkThirdParty": false,
   "telemetry.enable": false
 }

@@ -60,6 +60,16 @@ The first path in the output must be inside `~/projects/nvim-feedback`.
 
 Neovim caches every loaded Lua module, so an edit in your clone does not reach a running session. Restart Neovim after you change any file under `lua/`.
 
+## Run the tests
+
+The tests use [mini.test](https://github.com/nvim-mini/mini.test) and live in `tests/`. Every file named `test_*.lua` there is collected automatically. Run them from the clone:
+
+```sh
+mise run test
+```
+
+The first run clones mini.test into `deps/mini.test`, which git ignores. To pick up a new mini.test version after the pinned tag in `mise.toml` changes, delete `deps/` and run the tests again.
+
 ## Link the agent skill
 
 When working on the skill itself, symlink it from your clone instead of installing it, so edits take effect without reinstalling:
