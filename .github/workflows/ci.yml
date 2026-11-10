@@ -34,6 +34,6 @@ jobs:
           - name: test
             run: mise run test
     steps:
-      - uses: actions/checkout@v7
-      - uses: jdx/mise-action@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: jdx/mise-action@v5.2.7
       - run: ${{ matrix.run }}
