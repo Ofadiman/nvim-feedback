@@ -14,5 +14,7 @@ node = "24.16.0"
 description = "Run the tests"
 run = [
   "test -d deps/mini.test || git clone --quiet --config advice.detachedHead=false --depth 1 --branch v0.18.0 https://github.com/nvim-mini/mini.test deps/mini.test",
+  "test -d deps/luacov || git clone --quiet --config advice.detachedHead=false --depth 1 --branch v0.17.0 https://github.com/lunarmodules/luacov deps/luacov",
+  "rm -f coverage/luacov.stats.out",
   "nvim --headless --noplugin -u scripts/minimal_init.lua -c 'lua MiniTest.run()'",
 ]

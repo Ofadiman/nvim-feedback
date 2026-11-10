@@ -68,7 +68,9 @@ The tests use [mini.test](https://github.com/nvim-mini/mini.test) and live in `t
 mise run test
 ```
 
-The first run clones mini.test into `deps/mini.test`, which git ignores. To pick up a new mini.test version after the pinned tag in `mise.toml` changes, delete `deps/` and run the tests again.
+The first run clones mini.test and [LuaCov](https://github.com/lunarmodules/luacov) into `deps/`, which git ignores. To pick up a new version after a pinned tag in `mise.toml` changes, delete `deps/` and run the tests again.
+
+Every run also measures line coverage of `lua/nvim-feedback/` and prints a summary per file after the test results. Files that no test loads show 0%. The annotated source, with `*0` marking each line that never ran, is in `coverage/luacov.report.out`, which git ignores.
 
 ## Link the agent skill
 
