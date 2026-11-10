@@ -63,7 +63,7 @@ function M.open(value, on_save, options)
     border = "double",
     title = " 󰆉 AI feedback ",
     title_pos = "center",
-    footer = " Esc save · :q! discard ",
+    footer = " :w save · :wq save and close · Esc discard ",
     footer_pos = "center",
     width = width,
     height = height,
@@ -77,15 +77,11 @@ function M.open(value, on_save, options)
     "Normal:NormalFloat,FloatBorder:DiagnosticWarn,FloatTitle:DiagnosticWarn,FloatFooter:Comment"
 
   vim.keymap.set("n", "<Esc>", function()
-    if feedback_text(buffer):match("^%s*$") then
-      vim.bo[buffer].modified = false
-      close_active_window()
-      return
-    end
-    vim.cmd.write()
+    vim.bo[buffer].modified = false
+    close_active_window()
   end, {
     buffer = buffer,
-    desc = "Save AI feedback",
+    desc = "Discard AI feedback",
   })
 
   vim.api.nvim_create_autocmd("BufWriteCmd", {
@@ -104,12 +100,6 @@ function M.open(value, on_save, options)
       end
 
       vim.bo[buffer].modified = false
-      local window = active_window
-      vim.schedule(function()
-        if active_window == window then
-          close_active_window()
-        end
-      end)
     end,
   })
 

@@ -460,6 +460,25 @@ local function choose_feedback(entries, prompt, callback)
   }, callback)
 end
 
+local function save_comment(root, branch, id, text)
+  local ok, save_error = store.mutate(root, function(data)
+    for _, existing in ipairs(data.feedback) do
+      if existing.id == id and existing.branch == branch then
+        existing.comment = text
+        return true, true
+      end
+    end
+    return false, nil, "AI feedback no longer exists"
+  end)
+  if not ok then
+    return nil, save_error
+  end
+
+  mtimes[root] = store.mtime(root)
+  refresh_root(root)
+  return true
+end
+
 local function create_feedback(buffer, context, start_line, end_line, start_col, end_col)
   if vim.bo[buffer].modified then
     notify_error("Save buffer before adding AI feedback")
@@ -491,7 +510,12 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
     entry.range.end_col = end_col
   end
 
+  local saved = false
   ui.open("", function(text)
+    if saved then
+      return save_comment(context.root, context.branch, id, text)
+    end
+
     entry.comment = text
     local ok, save_error = store.mutate(context.root, function(data)
       table.insert(data.feedback, entry)
@@ -501,6 +525,7 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
       return nil, save_error
     end
 
+    saved = true
     mtimes[context.root] = store.mtime(context.root)
     refresh_root(context.root)
     return true
@@ -509,22 +534,7 @@ end
 
 local function edit_feedback(current, item)
   ui.open(item.comment, function(text)
-    local ok, save_error = store.mutate(current.context.root, function(data)
-      for _, existing in ipairs(data.feedback) do
-        if existing.id == item.id and existing.branch == current.context.branch then
-          existing.comment = text
-          return true, true
-        end
-      end
-      return false, nil, "AI feedback no longer exists"
-    end)
-    if not ok then
-      return nil, save_error
-    end
-
-    mtimes[current.context.root] = store.mtime(current.context.root)
-    refresh_root(current.context.root)
-    return true
+    return save_comment(current.context.root, current.context.branch, item.id, text)
   end)
 end
 
