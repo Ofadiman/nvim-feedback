@@ -56,7 +56,7 @@ lualine_x = {
 
 ### Resolving feedback with an agent
 
-Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It works through the comments on the current branch. A comment that asks for a change gets the smallest change that satisfies it, checked to work. A comment that asks a question gets an answer in the agent's reply, quoting the question. The skill deletes only the comments it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
+Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It works through the comments on the current branch. A comment that asks for a change gets the smallest change that satisfies it, checked to work, and a comment that asks a question gets an answer. The agent's reply quotes every comment it resolved, followed by what it changed or its answer. The skill deletes only the comments it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
 
 ## Requirements
 
