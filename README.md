@@ -26,7 +26,7 @@ With the keymaps above:
 - Read comments inline. Each comment shows a sign, a highlighted range, and the first line of its text on a virtual line below the range.
 - Keep editing the code, and comments follow it as it moves. A comment that can no longer be located is marked `[stale]` instead of being silently dropped.
 - Switch Git branches to switch the visible comments. Comments are scoped to the branch they were written on.
-- Search every comment on the branch by pressing `<leader>af`. The Telescope picker shows a preview and jumps to the comment you select.
+- Search the comments on the branch by their text by pressing `<leader>af`. The Telescope picker lists the file and commented code of each match, previews the full comment, and jumps to the comment you select.
 - Delete a comment by pressing `<leader>ad` on its range and confirming. When several comments overlap the range, pick one first.
 - Delete every comment on the branch by pressing `<leader>aD` and confirming.
 - Show the comment count for the branch in the statusline, as described in [Statusline](#statusline).
