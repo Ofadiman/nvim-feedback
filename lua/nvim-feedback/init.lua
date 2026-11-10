@@ -284,7 +284,6 @@ refresh_buffer = function(buffer)
 
       local end_text = lines[end_line] or ""
       local virtual_highlight = stale and "NvimFeedbackStaleText" or "NvimFeedbackText"
-      local sign_highlight = stale and "NvimFeedbackStaleSign" or "NvimFeedbackSign"
       local mark_col = characterwise and start_col or 0
       local extmark_options = {
         end_row = end_line - 1,
@@ -292,8 +291,6 @@ refresh_buffer = function(buffer)
         priority = 200,
         right_gravity = false,
         end_right_gravity = true,
-        sign_text = "󰆉",
-        sign_hl_group = sign_highlight,
         strict = false,
       }
       if characterwise then
@@ -303,18 +300,6 @@ refresh_buffer = function(buffer)
       end
 
       local extmark_id = vim.api.nvim_buf_set_extmark(buffer, namespace, start_line - 1, mark_col, extmark_options)
-      for line = start_line + 1, end_line do
-        local sign_options = {
-          priority = 200,
-          sign_text = "󰆉",
-          sign_hl_group = sign_highlight,
-          strict = false,
-        }
-        if not characterwise and not columns then
-          sign_options.line_hl_group = "NvimFeedbackRange"
-        end
-        vim.api.nvim_buf_set_extmark(buffer, namespace, line - 1, 0, sign_options)
-      end
       if columns then
         for line = start_line, end_line do
           local column = columns[line - start_line + 1]

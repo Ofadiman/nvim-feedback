@@ -153,7 +153,7 @@ function helpers.highlights(child)
           end_col = details.end_col,
         })
       elseif details.line_hl_group then
-        table.insert(result, { line = mark[2] + 1 })
+        table.insert(result, { start_line = mark[2] + 1, end_line = details.end_row + 1 })
       end
     end
     return result
@@ -165,8 +165,8 @@ function helpers.signs(child)
     local namespace = vim.api.nvim_create_namespace("nvim-feedback")
     local result = {}
     for _, mark in ipairs(vim.api.nvim_buf_get_extmarks(0, namespace, 0, -1, { details = true })) do
-      if mark[4].sign_hl_group then
-        table.insert(result, { line = mark[2] + 1, highlight = mark[4].sign_hl_group })
+      if mark[4].sign_text then
+        table.insert(result, { line = mark[2] + 1, text = mark[4].sign_text })
       end
     end
     return result

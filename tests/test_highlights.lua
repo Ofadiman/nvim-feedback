@@ -30,12 +30,10 @@ local tests = MiniTest.new_set({
 
 tests["setup()"] = MiniTest.new_set()
 
-tests["setup()"]["links the sign and text groups to the diagnostic groups"] = function()
+tests["setup()"]["links the text groups to the diagnostic virtual text groups"] = function()
   setup()
 
-  MiniTest.expect.equality(highlight("NvimFeedbackSign"), { link = "DiagnosticSignWarn", default = true })
   MiniTest.expect.equality(highlight("NvimFeedbackText"), { link = "DiagnosticVirtualTextWarn", default = true })
-  MiniTest.expect.equality(highlight("NvimFeedbackStaleSign"), { link = "DiagnosticSignError", default = true })
   MiniTest.expect.equality(highlight("NvimFeedbackStaleText"), { link = "DiagnosticVirtualTextError", default = true })
 end
 
@@ -78,12 +76,12 @@ end
 
 tests["setup()"]["keeps the groups that were defined before it was called"] = function()
   child.cmd("highlight NvimFeedbackRange guibg=#abcdef")
-  child.cmd("highlight link NvimFeedbackSign Title")
+  child.cmd("highlight link NvimFeedbackText Title")
 
   setup()
 
   MiniTest.expect.equality(highlight("NvimFeedbackRange"), { bg = 0xabcdef })
-  MiniTest.expect.equality(highlight("NvimFeedbackSign"), { link = "Title" })
+  MiniTest.expect.equality(highlight("NvimFeedbackText"), { link = "Title" })
 end
 
 tests["colorscheme"] = MiniTest.new_set()
@@ -97,7 +95,7 @@ tests["colorscheme"]["defines the groups again from the colors of the new colors
   child.cmd("colorscheme feedback-test")
 
   MiniTest.expect.equality(highlight("NvimFeedbackRange"), { bg = 0x323a43, default = true })
-  MiniTest.expect.equality(highlight("NvimFeedbackSign"), { link = "DiagnosticSignWarn", default = true })
+  MiniTest.expect.equality(highlight("NvimFeedbackText"), { link = "DiagnosticVirtualTextWarn", default = true })
   MiniTest.expect.equality(highlight("NvimFeedbackStaleText"), { fg = 0x123456 })
 
   helpers.remove(directory)
@@ -132,17 +130,21 @@ tests["rendering"]["highlights every kind of commented range with the range grou
       local details = mark[4]
       local group = details.hl_group or details.line_hl_group
       if group then
-        table.insert(groups, { line = mark[2] + 1, kind = details.hl_group and "text" or "line", group = group })
+        table.insert(groups, {
+          start_line = mark[2] + 1,
+          end_line = details.end_row + 1,
+          kind = details.hl_group and "text" or "line",
+          group = group,
+        })
       end
     end
     return groups
   ]])
   MiniTest.expect.equality(groups, {
-    { line = 1, kind = "line", group = "NvimFeedbackRange" },
-    { line = 1, kind = "text", group = "NvimFeedbackRange" },
-    { line = 2, kind = "line", group = "NvimFeedbackRange" },
-    { line = 2, kind = "text", group = "NvimFeedbackRange" },
-    { line = 3, kind = "text", group = "NvimFeedbackRange" },
+    { start_line = 1, end_line = 2, kind = "line", group = "NvimFeedbackRange" },
+    { start_line = 1, end_line = 1, kind = "text", group = "NvimFeedbackRange" },
+    { start_line = 2, end_line = 2, kind = "text", group = "NvimFeedbackRange" },
+    { start_line = 3, end_line = 3, kind = "text", group = "NvimFeedbackRange" },
   })
 
   helpers.remove(repository)

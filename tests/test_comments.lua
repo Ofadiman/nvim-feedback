@@ -140,8 +140,8 @@ tests["add()"]["comments on the cursor line in normal mode"] = function()
   MiniTest.expect.equality(helpers.virtual_lines(child), {
     { line = 2, text = "  󰆉 Explain beta", highlight = "NvimFeedbackText" },
   })
-  MiniTest.expect.equality(helpers.highlights(child), { { line = 2 } })
-  MiniTest.expect.equality(helpers.signs(child), { { line = 2, highlight = "NvimFeedbackSign" } })
+  MiniTest.expect.equality(helpers.highlights(child), { { start_line = 2, end_line = 2 } })
+  MiniTest.expect.equality(helpers.signs(child), {})
   MiniTest.expect.equality(statusline(), "󰆉 1")
 end
 
@@ -164,7 +164,8 @@ tests["add()"]["comments on the whole lines selected with V"] = function()
   local feedback = helpers.read_feedback(repository)
   MiniTest.expect.equality(feedback[1].range, { start_line = 1, end_line = 2 })
   MiniTest.expect.equality(feedback[1].anchor.selected_lines, { "local alpha = 1", "  local beta = 2" })
-  MiniTest.expect.equality(helpers.highlights(child), { { line = 1 }, { line = 2 } })
+  MiniTest.expect.equality(helpers.highlights(child), { { start_line = 1, end_line = 2 } })
+  MiniTest.expect.equality(helpers.signs(child), {})
   MiniTest.expect.equality(helpers.virtual_lines(child), {
     { line = 2, text = "󰆉 Merge these", highlight = "NvimFeedbackText" },
   })

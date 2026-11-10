@@ -69,7 +69,6 @@ tests["editing"]["marks a comment whose lines were deleted as stale"] = function
   MiniTest.expect.equality(helpers.virtual_lines(child), {
     { line = 2, text = "󰆉 [stale] Explain beta", highlight = "NvimFeedbackStaleText" },
   })
-  MiniTest.expect.equality(helpers.signs(child), { { line = 2, highlight = "NvimFeedbackStaleSign" } })
 end
 
 tests["saving"] = MiniTest.new_set()

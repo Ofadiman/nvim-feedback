@@ -107,9 +107,7 @@ Comments in the code use the following highlight groups. Define any of them, or 
 | Group                   | Used for                                         | Default                                                          |
 | ----------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
 | `NvimFeedbackRange`     | Background of the commented code.                | The `DiagnosticWarn` color blended into the `Normal` background. |
-| `NvimFeedbackSign`      | Sign of a comment.                               | Linked to `DiagnosticSignWarn`.                                  |
 | `NvimFeedbackText`      | Comment text below the code.                     | Linked to `DiagnosticVirtualTextWarn`.                           |
-| `NvimFeedbackStaleSign` | Sign of a comment that can no longer be located. | Linked to `DiagnosticSignError`.                                 |
 | `NvimFeedbackStaleText` | Text of a comment that can no longer be located. | Linked to `DiagnosticVirtualTextError`.                          |
 
 ```lua

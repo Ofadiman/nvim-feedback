@@ -3,9 +3,7 @@ local M = {}
 local RANGE_TINT = 0.15
 
 local LINKS = {
-  NvimFeedbackSign = "DiagnosticSignWarn",
   NvimFeedbackText = "DiagnosticVirtualTextWarn",
-  NvimFeedbackStaleSign = "DiagnosticSignError",
   NvimFeedbackStaleText = "DiagnosticVirtualTextError",
 }
 
