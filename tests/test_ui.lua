@@ -193,7 +193,37 @@ tests[":write"]["refuses to save an empty comment"] = function()
   MiniTest.expect.equality(helpers.notifications(child), {
     { message = "AI feedback cannot be empty", level = vim.log.levels.ERROR },
   })
-  MiniTest.expect.equality(child.bo.modified, true)
+  MiniTest.expect.equality(#helpers.floating_windows(child), 1)
+end
+
+tests[":write"]["marks the title while the comment has unsaved changes"] = function()
+  open_editor("Comment")
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback ")
+
+  child.api.nvim_buf_set_lines(0, 0, -1, false, { "Changed" })
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback [+] ")
+  MiniTest.expect.equality(child.api.nvim_win_get_config(0).title_pos, "center")
+
+  helpers.save_comment(child, { "Changed again" }, "write")
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback ")
+end
+
+tests[":write"]["clears the unsaved-changes mark when the typed changes are undone"] = function()
+  open_editor("Comment")
+
+  child.type_keys("A", "!", "<Esc>")
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback [+] ")
+  child.type_keys("u")
+
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback ")
+end
+
+tests[":write"]["keeps the unsaved-changes mark when the save fails"] = function()
+  open_editor("", { failure = "Disk is full" })
+
+  helpers.save_comment(child, { "Comment" }, "write")
+
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback [+] ")
 end
 
 tests[":write"]["titles its messages with the plugin name"] = function()
@@ -251,7 +281,57 @@ tests["<Esc>"]["closes the window of a comment that was not changed"] = function
   MiniTest.expect.equality(helpers.notifications(child), {})
 end
 
+tests["<Esc>"]["closes a new comment after the typed text is deleted again"] = function()
+  open_editor("")
+
+  child.type_keys("i", "a", "<BS>", "<Esc>")
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback ")
+  child.type_keys("<Esc>")
+
+  MiniTest.expect.equality(helpers.floating_windows(child), {})
+end
+
+tests["<Esc>"]["closes an edited comment after its text is typed back to the saved text"] = function()
+  open_editor("Comment")
+
+  child.type_keys("A", "!", "<BS>", "<Esc>")
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback ")
+  child.type_keys("<Esc>")
+
+  MiniTest.expect.equality(helpers.floating_windows(child), {})
+end
+
+tests["<Esc>"]["closes a new comment that holds only blank text"] = function()
+  open_editor("")
+
+  child.type_keys("i", "  ", "<CR>", "<Esc>", "<Esc>")
+
+  MiniTest.expect.equality(helpers.floating_windows(child), {})
+end
+
+tests["<Esc>"]["compares the text with the last saved comment"] = function()
+  open_editor("")
+  helpers.save_comment(child, { "Draft" }, "write")
+  local window = child.api.nvim_get_current_win()
+
+  child.type_keys("A", "!", "<Esc>", "<Esc>")
+  MiniTest.expect.equality(helpers.floating_windows(child), { window })
+  MiniTest.expect.equality(window_title(), " 󰆉 AI feedback [+] ")
+  child.type_keys("A", "<BS>", "<Esc>", "<Esc>")
+
+  MiniTest.expect.equality(helpers.floating_windows(child), {})
+end
+
 tests[":quit!"] = MiniTest.new_set()
+
+tests[":quit!"]["is not needed with :quit after the typed text is deleted again"] = function()
+  open_editor("Comment")
+
+  child.type_keys("A", "!", "<BS>", "<Esc>")
+  child.cmd("quit")
+
+  MiniTest.expect.equality(helpers.floating_windows(child), {})
+end
 
 tests[":quit!"]["closes the window and discards the changes"] = function()
   open_editor("Comment")

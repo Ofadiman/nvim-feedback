@@ -52,6 +52,10 @@ local function initial_lines(value)
   return vim.split(value, "\n", { plain = true })
 end
 
+local function window_title(modified)
+  return " " .. M.labeled("AI feedback") .. (modified and " [+]" or "") .. " "
+end
+
 local function feedback_text(buffer)
   local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
   while #lines > 1 and lines[1] == "" do
@@ -61,6 +65,10 @@ local function feedback_text(buffer)
     table.remove(lines)
   end
   return table.concat(lines, "\n")
+end
+
+local function significant_text(text)
+  return text:match("^%s*$") and "" or text
 end
 
 function M.open(value, on_save, options)
@@ -91,7 +99,7 @@ function M.open(value, on_save, options)
     relative = "editor",
     style = "minimal",
     border = vim.o.winborder == "" and FALLBACK_BORDER or nil,
-    title = " " .. M.labeled("AI feedback") .. " ",
+    title = window_title(false),
     title_pos = "center",
     footer = " :w save · :wq save and close · :q! discard ",
     footer_pos = "center",
@@ -106,8 +114,23 @@ function M.open(value, on_save, options)
   vim.wo[active_window].winhl =
     "Normal:NormalFloat,FloatBorder:DiagnosticWarn,FloatTitle:DiagnosticWarn,FloatFooter:Comment"
 
+  local opened_window = active_window
+  local saved_text = significant_text(value)
+  local function has_unsaved_changes()
+    return significant_text(feedback_text(buffer)) ~= saved_text
+  end
+
+  local function update_title()
+    if vim.api.nvim_win_is_valid(opened_window) then
+      vim.api.nvim_win_set_config(opened_window, {
+        title = window_title(vim.bo[buffer].modified),
+        title_pos = "center",
+      })
+    end
+  end
+
   vim.keymap.set("n", "<Esc>", function()
-    if not vim.bo[buffer].modified then
+    if not has_unsaved_changes() then
       close_active_window()
     end
   end, {
@@ -130,7 +153,22 @@ function M.open(value, on_save, options)
         return
       end
 
+      saved_text = text
       vim.bo[buffer].modified = false
+      update_title()
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("BufModifiedSet", {
+    buffer = buffer,
+    callback = update_title,
+  })
+
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "TextChangedP" }, {
+    buffer = buffer,
+    callback = function()
+      vim.bo[buffer].modified = has_unsaved_changes()
+      update_title()
     end,
   })
 
