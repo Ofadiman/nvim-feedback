@@ -1,6 +1,7 @@
 local M = {}
 
 local NOTIFICATION_TITLE = "nvim-feedback"
+local FALLBACK_BORDER = "double"
 
 local active_window = nil
 local settings = require("nvim-feedback.config").parse(nil)
@@ -89,7 +90,7 @@ function M.open(value, on_save, options)
   active_window = vim.api.nvim_open_win(buffer, true, {
     relative = "editor",
     style = "minimal",
-    border = "double",
+    border = vim.o.winborder == "" and FALLBACK_BORDER or nil,
     title = " " .. M.labeled("AI feedback") .. " ",
     title_pos = "center",
     footer = " :w save · :wq save and close · :q! discard ",

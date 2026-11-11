@@ -78,6 +78,34 @@ tests["open()"]["keeps the window inside the editor"] = function()
   MiniTest.expect.equality(window_layout(), { relative = "editor", width = 76, height = 20, row = 1, col = 2 })
 end
 
+tests["open()"]["draws a double border when 'winborder' is not set"] = function()
+  open_editor("")
+
+  MiniTest.expect.equality(
+    child.api.nvim_win_get_config(0).border,
+    { "╔", "═", "╗", "║", "╝", "═", "╚", "║" }
+  )
+end
+
+tests["open()"]["draws the border that 'winborder' sets"] = function()
+  child.o.winborder = "rounded"
+
+  open_editor("")
+
+  MiniTest.expect.equality(
+    child.api.nvim_win_get_config(0).border,
+    { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
+  )
+end
+
+tests["open()"]["draws no border when 'winborder' is none"] = function()
+  child.o.winborder = "none"
+
+  open_editor("")
+
+  MiniTest.expect.equality(child.api.nvim_win_get_config(0).border, "none")
+end
+
 tests["open()"]["shows the icon in the title"] = function()
   open_editor("")
 
