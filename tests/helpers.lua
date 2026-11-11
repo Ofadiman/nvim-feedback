@@ -96,6 +96,18 @@ function helpers.start_editor(child, opts)
   )
 end
 
+function helpers.add_telescope(child, defaults)
+  child.lua(
+    [[
+    local root, defaults = ...
+    vim.opt.runtimepath:append(vim.fs.joinpath(root, "deps", "plenary.nvim"))
+    vim.opt.runtimepath:append(vim.fs.joinpath(root, "deps", "telescope.nvim"))
+    require("telescope").setup({ defaults = defaults })
+  ]],
+    { vim.fn.getcwd(), defaults or vim.empty_dict() }
+  )
+end
+
 function helpers.notifications(child)
   return child.lua_get("_G.notifications")
 end

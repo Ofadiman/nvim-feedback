@@ -67,15 +67,18 @@ end
 
 local function stub_picker()
   child.lua([[
-    require("nvim-feedback.picker").open = function(root, feedback, on_select)
+    require("nvim-feedback.picker").open = function(root, entries, on_select)
       _G.picker = {
         root = root,
-        comments = vim.tbl_map(function(item)
-          return item.comment
-        end, feedback),
+        comments = vim.tbl_map(function(entry)
+          return entry.item.comment
+        end, entries),
+        entries = vim.tbl_map(function(entry)
+          return { range = entry.range, stale = entry.stale, lines = entry.lines or vim.NIL }
+        end, entries),
       }
       _G.select_comment = function(index)
-        on_select(feedback[index])
+        on_select(entries[index].item)
       end
     end
   ]])
@@ -685,7 +688,30 @@ tests["find()"]["lists the comments on the current branch"] = function()
 
   child.lua([[require("nvim-feedback").find()]])
 
-  MiniTest.expect.equality(child.lua_get("_G.picker"), { root = repository, comments = { "First", "Second" } })
+  MiniTest.expect.equality(child.lua_get("_G.picker.root"), repository)
+  MiniTest.expect.equality(child.lua_get("_G.picker.comments"), { "First", "Second" })
+end
+
+tests["find()"]["passes where each comment is now and which comments are stale"] = function()
+  helpers.write_file(repository, "gone.lua", { "return {}" })
+  write_feedback({
+    comment({ comment = "Moved", range = { start_line = 1, end_line = 1 } }),
+    comment({ comment = "Edited away", range = { start_line = 4, end_line = 4, start_col = 7, end_col = 19 } }),
+    comment({ comment = "Deleted file", file = "gone.lua", range = { start_line = 1, end_line = 1 } }),
+  })
+  helpers.remove(vim.fs.joinpath(repository, "gone.lua"))
+  helpers.write_file(repository, "values.lua", { "-- header", unpack(FILE_LINES) })
+  open_file()
+  child.api.nvim_buf_set_lines(0, 4, 5, false, { "return 0" })
+
+  child.lua([[require("nvim-feedback").find()]])
+
+  local lines = { "-- header", "local alpha = 1", "  local beta = 2", "", "return 0" }
+  MiniTest.expect.equality(child.lua_get("_G.picker.entries"), {
+    { range = { start_line = 2, end_line = 2 }, stale = false, lines = lines },
+    { range = { start_line = 5, end_line = 5, start_col = 7, end_col = 19 }, stale = true, lines = lines },
+    { range = { start_line = 1, end_line = 1 }, stale = true, lines = vim.NIL },
+  })
 end
 
 tests["find()"]["opens the file of the selected comment at its first line"] = function()

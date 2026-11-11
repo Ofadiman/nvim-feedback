@@ -166,20 +166,8 @@ local function target_range()
   return line, line
 end
 
-local function comment_prefix(stale)
-  return stale and "[stale] " or ""
-end
-
 local function comment_virtual_line(comment, stale, highlight, indent)
-  local lines = vim.tbl_filter(function(line)
-    return line:match("%S") ~= nil
-  end, vim.split(comment, "\n", { plain = true }))
-  local text = lines[1] or ""
-  local hidden = #lines - 1
-  if hidden > 0 then
-    text = string.format("%s … (+%d %s)", text, hidden, hidden == 1 and "line" or "lines")
-  end
-  return { { string.rep(" ", indent) }, { ui.labeled(comment_prefix(stale) .. text), highlight } }
+  return { { string.rep(" ", indent) }, { ui.labeled(ui.summary(comment, stale)), highlight } }
 end
 
 local function mark_range(buffer, mark)
@@ -735,6 +723,44 @@ function M.delete_all()
   )
 end
 
+local function file_lines(file_path)
+  for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buffer) and vim.fs.normalize(vim.api.nvim_buf_get_name(buffer)) == file_path then
+      return vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
+    end
+  end
+  if vim.uv.fs_stat(file_path) then
+    return vim.fn.readfile(file_path)
+  end
+end
+
+local function picker_entries(root, feedback)
+  local files = {}
+  local entries = {}
+  for _, item in ipairs(feedback) do
+    if files[item.file] == nil then
+      files[item.file] = file_lines(vim.fs.normalize(vim.fs.joinpath(root, item.file))) or false
+    end
+    local lines = files[item.file] or nil
+    local start_line, end_line, start_col, end_col
+    if lines then
+      start_line, end_line, start_col, end_col = anchor.locate(lines, item)
+    end
+    local range = item.range
+    if start_line then
+      range = {
+        start_line = start_line,
+        end_line = end_line,
+        start_col = start_col,
+        end_col = end_col,
+        columns = item.range.columns,
+      }
+    end
+    table.insert(entries, { item = item, lines = lines, range = range, stale = start_line == nil })
+  end
+  return entries
+end
+
 function M.find()
   local location, location_error = find_feedback_location()
   if not location then
@@ -754,7 +780,7 @@ function M.find()
     return
   end
 
-  picker.open(location.root, feedback, function(item)
+  picker.open(location.root, picker_entries(location.root, feedback), function(item)
     local file_path = vim.fs.joinpath(location.root, item.file)
     if not vim.uv.fs_stat(file_path) then
       vim.notify("AI feedback file does not exist: " .. item.file, vim.log.levels.ERROR)

@@ -68,7 +68,7 @@ The tests use [mini.test](https://github.com/nvim-mini/mini.test) and live in `t
 mise run test
 ```
 
-The first run clones mini.test and [LuaCov](https://github.com/lunarmodules/luacov) into `deps/`, which git ignores. To pick up a new version after a pinned tag in `mise.toml` changes, delete `deps/` and run the tests again.
+The first run clones mini.test, [LuaCov](https://github.com/lunarmodules/luacov), telescope.nvim, and plenary.nvim into `deps/`, which git ignores. The picker tests run against those copies of telescope.nvim and plenary.nvim, not against the ones your Neovim configuration installs. To pick up a new version after a pinned tag in `mise.toml` changes, delete `deps/` and run the tests again.
 
 The tests run Git with `tests/gitconfig` in place of your global and system Git configuration, so your own Git settings do not change the results. Shared test utilities live in `tests/helpers.lua`, which test files load with `dofile("tests/helpers.lua")`.
 

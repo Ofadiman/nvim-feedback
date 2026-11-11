@@ -69,7 +69,7 @@ local tests = MiniTest.new_set({
 tests["check()"] = MiniTest.new_set()
 
 tests["check()"]["reports a repository that is ready for feedback"] = function()
-  child.lua([[package.preload.telescope = function() return {} end]])
+  helpers.add_telescope(child)
   helpers.write_file(repository, ".gitignore", { "feedback.json" })
   helpers.write_feedback(repository, {})
   local skill = install_skill(claude_skills())

@@ -7,6 +7,22 @@ function M.configure(config)
   settings = config
 end
 
+function M.comment_lines(comment)
+  return vim.tbl_filter(function(line)
+    return line:match("%S") ~= nil
+  end, vim.split(comment, "\n", { plain = true }))
+end
+
+function M.summary(comment, stale, index)
+  local lines = M.comment_lines(comment)
+  local text = lines[index or 1] or ""
+  local hidden = #lines - 1
+  if hidden > 0 then
+    text = string.format("%s … (+%d %s)", text, hidden, hidden == 1 and "line" or "lines")
+  end
+  return (stale and "[stale] " or "") .. text
+end
+
 function M.labeled(text)
   if settings.icon == "" then
     return text
