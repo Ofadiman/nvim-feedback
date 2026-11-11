@@ -114,7 +114,7 @@ Comments in the code use the following highlight groups. Define any of them, or 
 | ----------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
 | `NvimFeedbackRange`     | Background of the commented code.                | The `DiagnosticWarn` color blended into the `Normal` background. |
 | `NvimFeedbackText`      | Comment text below the code.                     | Linked to `DiagnosticVirtualTextWarn`.                           |
-| `NvimFeedbackStaleText` | Text of a comment that can no longer be located. | Linked to `Comment`.                                             |
+| `NvimFeedbackStaleText` | Text of a comment that can no longer be located. | Linked to `DiagnosticVirtualTextError`.                          |
 
 ```lua
 vim.api.nvim_set_hl(0, "NvimFeedbackRange", { bg = "#3a3020" })
