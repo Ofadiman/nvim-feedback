@@ -37,6 +37,16 @@ local function window_title()
   ]])
 end
 
+local function window_footer()
+  return child.lua([[
+    local text = {}
+    for _, chunk in ipairs(vim.api.nvim_win_get_config(0).footer) do
+      table.insert(text, chunk[1])
+    end
+    return table.concat(text)
+  ]])
+end
+
 local tests = MiniTest.new_set({
   hooks = {
     pre_case = function()
@@ -104,6 +114,33 @@ tests["open()"]["draws no border when 'winborder' is none"] = function()
   open_editor("")
 
   MiniTest.expect.equality(child.api.nvim_win_get_config(0).border, "none")
+end
+
+tests["open()"]["shows the full key hints in the footer when they fit the window"] = function()
+  child.o.columns = 88
+
+  open_editor("")
+
+  MiniTest.expect.equality(child.api.nvim_win_get_width(0), 44)
+  MiniTest.expect.equality(window_footer(), " :w save · :wq save and close · :q! discard ")
+end
+
+tests["open()"]["shows only the commands in the footer when the full key hints do not fit"] = function()
+  child.o.columns = 87
+
+  open_editor("")
+
+  MiniTest.expect.equality(child.api.nvim_win_get_width(0), 43)
+  MiniTest.expect.equality(window_footer(), " :w · :wq · :q! ")
+end
+
+tests["open()"]["keeps the shortest footer when even that does not fit the window"] = function()
+  child.lua([[require("nvim-feedback.ui").configure({ window = { width = 0.1, height = 0.5 }, icon = "󰆉" })]])
+
+  open_editor("")
+
+  MiniTest.expect.equality(child.api.nvim_win_get_width(0), 8)
+  MiniTest.expect.equality(window_footer(), " :w · :wq · :q! ")
 end
 
 tests["open()"]["shows the icon in the title"] = function()

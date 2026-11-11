@@ -2,6 +2,10 @@ local M = {}
 
 local NOTIFICATION_TITLE = "nvim-feedback"
 local FALLBACK_BORDER = "double"
+local FOOTERS = {
+  " :w save · :wq save and close · :q! discard ",
+  " :w · :wq · :q! ",
+}
 
 local active_window = nil
 local settings = require("nvim-feedback.config").parse(nil)
@@ -56,6 +60,15 @@ local function window_title(modified)
   return " " .. M.labeled("AI feedback") .. (modified and " [+]" or "") .. " "
 end
 
+local function window_footer(width)
+  for _, footer in ipairs(FOOTERS) do
+    if vim.fn.strdisplaywidth(footer) <= width then
+      return footer
+    end
+  end
+  return FOOTERS[#FOOTERS]
+end
+
 local function feedback_text(buffer)
   local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
   while #lines > 1 and lines[1] == "" do
@@ -101,7 +114,7 @@ function M.open(value, on_save, options)
     border = vim.o.winborder == "" and FALLBACK_BORDER or nil,
     title = window_title(false),
     title_pos = "center",
-    footer = " :w save · :wq save and close · :q! discard ",
+    footer = window_footer(width),
     footer_pos = "center",
     width = width,
     height = height,
