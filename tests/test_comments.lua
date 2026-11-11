@@ -239,7 +239,7 @@ tests["add()"]["shows the first line of a longer comment and counts the other li
   helpers.save_comment(child, { "Summary", "", "Details", "  ", "More details" })
 
   MiniTest.expect.equality(comments(), { "Summary\n\nDetails\n  \nMore details" })
-  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "󰆉 Summary … (+2 lines)")
+  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "󰆉 Summary (+2 lines)")
 end
 
 tests["add()"]["counts a single other line of a comment in the singular"] = function()
@@ -248,7 +248,7 @@ tests["add()"]["counts a single other line of a comment in the singular"] = func
   child.type_keys("<F2>")
   helpers.save_comment(child, { "Summary", "Details" })
 
-  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "󰆉 Summary … (+1 line)")
+  MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "󰆉 Summary (+1 line)")
 end
 
 tests["add()"]["updates the new comment when its window is saved again"] = function()

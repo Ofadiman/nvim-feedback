@@ -213,7 +213,7 @@ tests["results"]["list the location and the first line of each comment in aligne
 
   local state = wait_for({ "rows" }, {
     "  values.lua:1           [stale] Old note",
-    "  lua/long/path.lua:6-8  Inline this … (+1 line)",
+    "  lua/long/path.lua:6-8  Inline this (+1 line)",
     "> values.lua:3           Rename alpha",
   })
   MiniTest.expect.equality(state.stale, { { 0, 25, 41 } })
@@ -221,11 +221,11 @@ end
 
 tests["results"]["show the line of a comment that best matches the search and highlight the match"] = function()
   find({ comment({ comment = "shortcuts\none\ntwo\nthree", range = { start_line = 1, end_line = 1 } }) })
-  wait_for({ "rows" }, { "> values.lua:1  shortcuts … (+3 lines)" })
+  wait_for({ "rows" }, { "> values.lua:1  shortcuts (+3 lines)" })
 
   type_prompt("one")
 
-  local state = wait_for({ "rows" }, { "> values.lua:1  one … (+3 lines)" })
+  local state = wait_for({ "rows" }, { "> values.lua:1  one (+3 lines)" })
   local columns = vim.tbl_map(function(highlight)
     return highlight[2]
   end, state.matching)
@@ -246,11 +246,11 @@ tests["results"]["find comments by their location and by any line of their text"
   wait_for({ "rows", 2 }, "> values.lua:3           Rename alpha")
 
   type_prompt("path")
-  wait_for({ "rows" }, { "> lua/long/path.lua:6-8  Inline this … (+1 line)" })
+  wait_for({ "rows" }, { "> lua/long/path.lua:6-8  Inline this (+1 line)" })
   erase_prompt("path")
   type_prompt("used once")
 
-  wait_for({ "rows" }, { "> lua/long/path.lua:6-8  It is used once … (+1 line)" })
+  wait_for({ "rows" }, { "> lua/long/path.lua:6-8  It is used once (+1 line)" })
 end
 
 tests["preview"] = MiniTest.new_set()

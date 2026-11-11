@@ -29,7 +29,7 @@ function M.summary(comment, stale, index)
   local text = lines[index or 1] or ""
   local hidden = #lines - 1
   if hidden > 0 then
-    text = string.format("%s … (+%d %s)", text, hidden, hidden == 1 and "line" or "lines")
+    text = string.format("%s (+%d %s)", text, hidden, hidden == 1 and "line" or "lines")
   end
   return (stale and "[stale] " or "") .. text
 end
