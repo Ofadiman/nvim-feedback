@@ -843,7 +843,7 @@ end
 function M.statusline()
   local info = buffers[vim.api.nvim_get_current_buf()]
   local count = info and feedback_counts[info.root] and feedback_counts[info.root][info.branch]
-  if count == nil then
+  if not count or count == 0 then
     return ""
   end
   return ui.labeled(tostring(count))

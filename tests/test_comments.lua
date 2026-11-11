@@ -462,7 +462,7 @@ tests["delete()"]["deletes the comment under the cursor after confirmation"] = f
   })
   MiniTest.expect.equality(comments(), {})
   MiniTest.expect.equality(helpers.virtual_lines(child), {})
-  MiniTest.expect.equality(statusline(), "󰆉 0")
+  MiniTest.expect.equality(statusline(), "")
 end
 
 tests["delete()"]["keeps the comment when deletion is cancelled"] = function()
@@ -844,6 +844,15 @@ tests["statusline()"]["counts the comments on the branch of the current buffer"]
   open_file()
 
   MiniTest.expect.equality(statusline(), "󰆉 2")
+end
+
+tests["statusline()"]["is empty when the branch of the current buffer has no comments"] = function()
+  write_feedback({
+    comment({ comment = "Other branch", branch = "feature", range = { start_line = 1, end_line = 1 } }),
+  })
+  open_file()
+
+  MiniTest.expect.equality(statusline(), "")
 end
 
 tests["statusline()"]["is empty for a buffer that is not a file in a Git repository"] = function()

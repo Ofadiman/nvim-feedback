@@ -49,6 +49,8 @@ lualine_x = {
 }
 ```
 
+`statusline()` returns an empty string when the branch of the current buffer has no comments, so the component takes no space until you add one.
+
 ### Resolving feedback with an agent
 
 Once comments exist, invoke the skill yourself: `/nvim-feedback-resolve` in Claude Code, `$nvim-feedback-resolve` in Codex. The skill is explicit-invocation only in both, so an agent never starts resolving feedback on its own. It works through the comments on the current branch. A comment that asks for a change gets the smallest change that satisfies it, checked to work, and a comment that asks a question gets an answer. The agent's reply shows the code each resolved comment targets and quotes the comment, followed by what it changed or its answer. The skill deletes only the comments it resolved. Comments on other branches are never touched, and a comment is never deleted merely because the code around it changed.
