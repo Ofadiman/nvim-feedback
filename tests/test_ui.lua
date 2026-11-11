@@ -43,8 +43,10 @@ local tests = MiniTest.new_set({
       child.restart({ "-u", "scripts/minimal_init.lua" })
       child.lua([[
         _G.notifications = {}
-        vim.notify = function(message, level)
+        _G.notification_titles = {}
+        vim.notify = function(message, level, opts)
           table.insert(_G.notifications, { message = message, level = level })
+          table.insert(_G.notification_titles, opts and opts.title or vim.NIL)
         end
       ]])
     end,
@@ -164,6 +166,15 @@ tests[":write"]["refuses to save an empty comment"] = function()
     { message = "AI feedback cannot be empty", level = vim.log.levels.ERROR },
   })
   MiniTest.expect.equality(child.bo.modified, true)
+end
+
+tests[":write"]["titles its messages with the plugin name"] = function()
+  open_editor("", { failure = "Disk is full" })
+
+  helpers.save_comment(child, { "" }, "write")
+  helpers.save_comment(child, { "Comment" }, "write")
+
+  MiniTest.expect.equality(helpers.notification_titles(child), { "nvim-feedback", "nvim-feedback" })
 end
 
 tests[":write"]["reports a failed save and keeps the changes"] = function()

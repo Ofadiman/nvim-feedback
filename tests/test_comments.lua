@@ -861,6 +861,16 @@ end
 
 tests["setup()"] = MiniTest.new_set()
 
+tests["setup()"]["titles every message with the plugin name"] = function()
+  open_file()
+  child.type_keys("<F3>")
+  open_scratch_buffer()
+  child.type_keys("<F2>")
+  child.lua([[require("nvim-feedback").setup()]])
+
+  MiniTest.expect.equality(helpers.notification_titles(child), { "nvim-feedback", "nvim-feedback", "nvim-feedback" })
+end
+
 tests["setup()"]["reports a second call"] = function()
   child.lua([[require("nvim-feedback").setup()]])
 

@@ -13,7 +13,7 @@ local mtimes = {}
 local errors = {}
 
 local function notify_error(message)
-  vim.notify(message or "Unknown AI feedback error", vim.log.levels.ERROR)
+  ui.notify(message or "Unknown AI feedback error", vim.log.levels.ERROR)
 end
 
 local function report_error(root, message)
@@ -21,7 +21,7 @@ local function report_error(root, message)
     return
   end
   errors[root] = message
-  vim.notify(message, vim.log.levels.ERROR)
+  ui.notify(message, vim.log.levels.ERROR)
 end
 
 local function clear_error(root)
@@ -469,7 +469,7 @@ end
 
 local function choose_feedback(entries, prompt, callback)
   if #entries == 0 then
-    vim.notify("No AI feedback at selection", vim.log.levels.INFO)
+    ui.notify("No AI feedback at selection", vim.log.levels.INFO)
     return
   end
 
@@ -683,7 +683,7 @@ function M.delete_all()
 
   local count = #feedback_for_branch(data, location.branch)
   if count == 0 then
-    vim.notify("No AI feedback on branch " .. location.branch, vim.log.levels.INFO)
+    ui.notify("No AI feedback on branch " .. location.branch, vim.log.levels.INFO)
     return
   end
 
@@ -717,7 +717,7 @@ function M.delete_all()
   mtimes[location.root] = store.mtime(location.root)
   refresh_root(location.root)
   local deleted_suffix = deleted == 1 and "" or "s"
-  vim.notify(
+  ui.notify(
     string.format("Deleted %d AI feedback comment%s from branch %s", deleted, deleted_suffix, location.branch),
     vim.log.levels.INFO
   )
@@ -776,14 +776,14 @@ function M.find()
 
   local feedback = feedback_for_branch(data, location.branch)
   if #feedback == 0 then
-    vim.notify("No AI feedback on branch " .. location.branch, vim.log.levels.INFO)
+    ui.notify("No AI feedback on branch " .. location.branch, vim.log.levels.INFO)
     return
   end
 
   picker.open(location.root, picker_entries(location.root, feedback), function(item)
     local file_path = vim.fs.joinpath(location.root, item.file)
     if not vim.uv.fs_stat(file_path) then
-      vim.notify("AI feedback file does not exist: " .. item.file, vim.log.levels.ERROR)
+      ui.notify("AI feedback file does not exist: " .. item.file, vim.log.levels.ERROR)
       return
     end
 
@@ -853,7 +853,7 @@ local initialized = false
 
 function M.setup(opts)
   if initialized then
-    vim.notify("nvim-feedback setup() cannot be called more than once", vim.log.levels.ERROR)
+    ui.notify("nvim-feedback setup() cannot be called more than once", vim.log.levels.ERROR)
     return
   end
   initialized = true

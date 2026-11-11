@@ -1,10 +1,16 @@
 local M = {}
 
+local NOTIFICATION_TITLE = "nvim-feedback"
+
 local active_window = nil
 local settings = require("nvim-feedback.config").parse(nil)
 
 function M.configure(config)
   settings = config
+end
+
+function M.notify(message, level)
+  vim.notify(message, level, { title = NOTIFICATION_TITLE })
 end
 
 function M.comment_lines(comment)
@@ -113,13 +119,13 @@ function M.open(value, on_save, options)
     callback = function()
       local text = feedback_text(buffer)
       if text:match("^%s*$") then
-        vim.notify("AI feedback cannot be empty", vim.log.levels.ERROR)
+        M.notify("AI feedback cannot be empty", vim.log.levels.ERROR)
         return
       end
 
       local ok, save_error = on_save(text)
       if not ok then
-        vim.notify(save_error, vim.log.levels.ERROR)
+        M.notify(save_error, vim.log.levels.ERROR)
         return
       end
 

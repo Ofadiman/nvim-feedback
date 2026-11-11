@@ -82,8 +82,10 @@ function helpers.start_editor(child, opts)
   child.lua(
     [[
     _G.notifications = {}
-    vim.notify = function(message, level)
+    _G.notification_titles = {}
+    vim.notify = function(message, level, opts)
       table.insert(_G.notifications, { message = message, level = level })
+      table.insert(_G.notification_titles, opts and opts.title or vim.NIL)
     end
 
     local feedback = require("nvim-feedback")
@@ -110,6 +112,10 @@ end
 
 function helpers.notifications(child)
   return child.lua_get("_G.notifications")
+end
+
+function helpers.notification_titles(child)
+  return child.lua_get("_G.notification_titles")
 end
 
 function helpers.save_comment(child, lines, command)
