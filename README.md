@@ -96,14 +96,14 @@ skills add Ofadiman/nvim-feedback --global --agent claude-code,codex --skill nvi
 ```lua
 require("nvim-feedback").setup({
   window = {
-    width = 0.5,
-    height = 0.5,
+    width = 1,
+    height = 0.3,
   },
   icon = "󰆉",
 })
 ```
 
-- `window.width` and `window.height` set the size of the comment editor window, as fractions of the editor. The window draws the border set by `'winborder'`, or a double border when `'winborder'` is empty. With `'winborder'` set to `none`, the window has no border, so its title and key hints are hidden.
+- `window.width` and `window.height` set the size of the comment editor window, as fractions greater than 0 and up to 1 of the window you comment in: `width` of its text area next to the line numbers, `height` of its height, borders included. The comment editor opens right below the commented lines, lined up with the code, or right above them when there is not enough room below. When neither side has room, it shrinks to the larger side, and when the commented lines are out of view, it opens in the middle of the window. The window draws the border set by `'winborder'`, or a double border when `'winborder'` is empty. With `'winborder'` set to `none`, the window has no border, so its title and key hints are hidden.
 - `icon` marks comment text in the code, the title of the comment editor window, and the count returned by `statusline()`. The default requires a [Nerd Font](https://www.nerdfonts.com). Without one, set a plain character such as `">"`, or `""` to show no icon.
 
 ### Highlights

@@ -108,6 +108,51 @@ local function window_footer(width)
   return FOOTERS[#FOOTERS]
 end
 
+local function screen_row(window, info, line, last)
+  if line < 1 or line > vim.api.nvim_buf_line_count(info.bufnr) then
+    return nil
+  end
+  local column = last and math.max(1, #(vim.api.nvim_buf_get_lines(info.bufnr, line - 1, line, false)[1] or "")) or 1
+  local position = vim.fn.screenpos(window, line, column)
+  if position.row == 0 then
+    return nil
+  end
+  return position.row - info.winrow
+end
+
+local function placement(source, location, border)
+  local info = vim.fn.getwininfo(source)[1]
+  local text_width = info.width - info.textoff
+  local width = math.max(1, math.floor(text_width * settings.window.width) - border)
+  local height = math.max(1, math.floor(info.height * settings.window.height) - border)
+  local config = { relative = "win", win = source, col = info.textoff, width = width }
+
+  local below = location and screen_row(source, info, location.end_line, true)
+  local above = location and screen_row(source, info, location.start_line, false)
+  local space_below = below and info.height - below - 1 - border or -1
+  local space_above = above and above - border or -1
+
+  if space_below >= height then
+    return vim.tbl_extend("force", config, { row = below + 1, height = height })
+  end
+  if space_above >= height then
+    return vim.tbl_extend("force", config, { row = above - height - border, height = height })
+  end
+  if math.max(space_below, space_above) >= 1 then
+    if space_below >= space_above then
+      return vim.tbl_extend("force", config, { row = below + 1, height = space_below })
+    end
+    return vim.tbl_extend("force", config, { row = 0, height = space_above })
+  end
+
+  local outer_width = width + border
+  return vim.tbl_extend("force", config, {
+    row = math.max(0, math.floor((info.height - height - border) / 2)),
+    col = info.textoff + math.max(0, math.floor((text_width - outer_width) / 2)),
+    height = height,
+  })
+end
+
 local function feedback_text(buffer)
   local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
   while #lines > 1 and lines[1] == "" do
@@ -130,6 +175,7 @@ function M.open(value, on_save, options)
     return
   end
 
+  local source = vim.api.nvim_get_current_win()
   local buffer = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_name(buffer, "nvim-feedback://" .. tostring(vim.uv.hrtime()))
   vim.bo[buffer].buftype = "acwrite"
@@ -139,28 +185,21 @@ function M.open(value, on_save, options)
   vim.api.nvim_buf_set_lines(buffer, 0, -1, false, initial_lines(value))
   vim.bo[buffer].modified = false
 
-  local window = settings.window
-  local max_width = math.max(1, vim.o.columns - 4)
-  local max_height = math.max(1, vim.o.lines - 4)
-  local width = math.min(max_width, math.max(1, math.floor(vim.o.columns * window.width)))
-  local title_label = fitted_label(options.title or "AI feedback", options.location, width)
-  local height = math.min(max_height, math.max(1, math.floor(vim.o.lines * window.height)))
-  local row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1)
-  local column = math.max(0, math.floor((vim.o.columns - width) / 2))
+  local position = placement(source, options.location, vim.o.winborder == "none" and 0 or 2)
+  local title_label = fitted_label(options.title or "AI feedback", options.location, position.width)
 
-  active_window = vim.api.nvim_open_win(buffer, true, {
-    relative = "editor",
-    style = "minimal",
-    border = vim.o.winborder == "" and FALLBACK_BORDER or nil,
-    title = window_title(title_label, false),
-    title_pos = "center",
-    footer = window_footer(width),
-    footer_pos = "center",
-    width = width,
-    height = height,
-    row = row,
-    col = column,
-  })
+  active_window = vim.api.nvim_open_win(
+    buffer,
+    true,
+    vim.tbl_extend("force", position, {
+      style = "minimal",
+      border = vim.o.winborder == "" and FALLBACK_BORDER or nil,
+      title = window_title(title_label, false),
+      title_pos = "center",
+      footer = window_footer(position.width),
+      footer_pos = "center",
+    })
+  )
   vim.wo[active_window].wrap = true
   vim.wo[active_window].linebreak = true
   vim.wo[active_window].cursorline = true

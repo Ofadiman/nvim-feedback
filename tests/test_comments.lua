@@ -175,6 +175,16 @@ tests["add()"]["titles the comment window with the location of the new comment"]
   MiniTest.expect.equality(window_title(), " 󰆉 New comment · values.lua:1-2 ")
 end
 
+tests["add()"]["opens the comment window right below the selected lines"] = function()
+  open_file()
+  local source = child.api.nvim_get_current_win()
+
+  child.type_keys("Vj", "<F2>")
+
+  local config = child.api.nvim_win_get_config(0)
+  MiniTest.expect.equality({ config.relative, config.win, config.row, config.col }, { "win", source, 2, 0 })
+end
+
 tests["add()"]["comments on the whole lines selected with V"] = function()
   open_file()
   child.api.nvim_win_set_cursor(0, { 1, 3 })
@@ -379,6 +389,16 @@ tests["edit()"]["titles the comment window with where the comment is now"] = fun
   child.type_keys("3G", "<F3>")
 
   MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · values.lua:3 ")
+end
+
+tests["edit()"]["opens the comment window right below where the comment is now"] = function()
+  write_feedback({ comment({ comment = "Explain beta", range = { start_line = 2, end_line = 2 } }) })
+  open_file()
+  child.type_keys("ggO", "local zero = 0", "<Esc>")
+
+  child.type_keys("3G", "<F3>")
+
+  MiniTest.expect.equality(child.api.nvim_win_get_config(0).row, 3)
 end
 
 tests["edit()"]["asks which comment to edit when several overlap the cursor line"] = function()
@@ -916,7 +936,7 @@ tests["setup()"]["reports a second call"] = function()
   })
 end
 
-tests["setup()"]["sizes the comment window with the configured fractions of the editor"] = function()
+tests["setup()"]["sizes the comment window with the configured fractions of the commented window"] = function()
   helpers.start_editor(child, { window = { width = 0.8, height = 0.25 } })
   open_file()
 
@@ -924,7 +944,7 @@ tests["setup()"]["sizes the comment window with the configured fractions of the 
 
   MiniTest.expect.equality(
     child.lua_get([[{ vim.api.nvim_win_get_width(0), vim.api.nvim_win_get_height(0) }]]),
-    { 64, 6 }
+    { 62, 3 }
   )
 end
 

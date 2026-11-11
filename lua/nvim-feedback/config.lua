@@ -3,8 +3,8 @@ local M = {}
 function M.parse(opts)
   local config = {
     window = {
-      width = 0.5,
-      height = 0.5,
+      width = 1,
+      height = 0.3,
     },
     icon = "󰆉",
   }
@@ -24,7 +24,7 @@ function M.parse(opts)
       table.insert(problems, "window must be a table")
     else
       if opts.window.width ~= nil then
-        if type(opts.window.width) == "number" and opts.window.width > 0 and opts.window.width < 1 then
+        if type(opts.window.width) == "number" and opts.window.width > 0 and opts.window.width <= 1 then
           config.window.width = opts.window.width
         else
           table.insert(problems, "window.width must be a number between 0 and 1")
@@ -32,7 +32,7 @@ function M.parse(opts)
       end
 
       if opts.window.height ~= nil then
-        if type(opts.window.height) == "number" and opts.window.height > 0 and opts.window.height < 1 then
+        if type(opts.window.height) == "number" and opts.window.height > 0 and opts.window.height <= 1 then
           config.window.height = opts.window.height
         else
           table.insert(problems, "window.height must be a number between 0 and 1")

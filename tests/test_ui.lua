@@ -29,6 +29,31 @@ local function window_layout()
   ]])
 end
 
+local function open_at(start_line, end_line)
+  child.lua(
+    [[
+    local start_line, end_line = ...
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.tbl_map(function(index)
+      return "line " .. index
+    end, vim.fn.range(1, 30)))
+    require("nvim-feedback.ui").open("", function()
+      return true
+    end, { title = "New comment", location = { file = "a.lua", start_line = start_line, end_line = end_line } })
+  ]],
+    { start_line, end_line }
+  )
+end
+
+local function configure(width, height)
+  child.lua(
+    [[
+    local width, height = ...
+    require("nvim-feedback.ui").configure({ window = { width = width, height = height }, icon = "󰆉" })
+  ]],
+    { width, height }
+  )
+end
+
 local function window_title()
   return child.lua([[
     local text = {}
@@ -81,26 +106,88 @@ local tests = MiniTest.new_set({
 
 tests["open()"] = MiniTest.new_set()
 
-tests["open()"]["opens a centered floating window that fills half of the editor by default"] = function()
+tests["open()"]["centers the window over the current window when it has no comment location"] = function()
   open_editor("")
 
-  MiniTest.expect.equality(window_layout(), { relative = "editor", width = 40, height = 12, row = 5, col = 20 })
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 78, height = 4, row = 8, col = 0 })
 end
 
-tests["open()"]["sizes the window with the configured fractions of the editor"] = function()
-  child.lua([[require("nvim-feedback.ui").configure({ window = { width = 0.8, height = 0.25 }, icon = "󰆉" })]])
+tests["open()"]["sizes the window with the configured fractions of the current window"] = function()
+  configure(0.8, 0.25)
 
   open_editor("")
 
-  MiniTest.expect.equality(window_layout(), { relative = "editor", width = 64, height = 6, row = 8, col = 8 })
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 62, height = 3, row = 8, col = 8 })
 end
 
-tests["open()"]["keeps the window inside the editor"] = function()
-  child.lua([[require("nvim-feedback.ui").configure({ window = { width = 0.99, height = 0.99 }, icon = "󰆉" })]])
+tests["open()"]["fills the current window when both fractions are 1"] = function()
+  configure(1, 1)
 
   open_editor("")
 
-  MiniTest.expect.equality(window_layout(), { relative = "editor", width = 76, height = 20, row = 1, col = 2 })
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 78, height = 20, row = 0, col = 0 })
+end
+
+tests["open()"]["opens right below the commented lines"] = function()
+  open_at(3, 4)
+
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 78, height = 4, row = 4, col = 0 })
+end
+
+tests["open()"]["opens right above the commented lines when there is no room below them"] = function()
+  open_at(19, 21)
+
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 78, height = 4, row = 12, col = 0 })
+end
+
+tests["open()"]["shrinks to the free space below the commented lines when neither side has room"] = function()
+  configure(1, 1)
+
+  open_at(8, 9)
+
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 78, height = 11, row = 9, col = 0 })
+end
+
+tests["open()"]["shrinks to the free space above the commented lines when it is the larger side"] = function()
+  configure(1, 1)
+
+  open_at(15, 16)
+
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 78, height = 12, row = 0, col = 0 })
+end
+
+tests["open()"]["opens below the last screen row of a wrapped line"] = function()
+  child.lua([[vim.api.nvim_buf_set_lines(0, 0, -1, false, { "short", string.rep("x", 100) })]])
+  child.lua([[
+    require("nvim-feedback.ui").open("", function()
+      return true
+    end, { title = "New comment", location = { file = "a.lua", start_line = 2, end_line = 2 } })
+  ]])
+
+  MiniTest.expect.equality(window_layout().row, 3)
+end
+
+tests["open()"]["lines up with the text next to the line numbers"] = function()
+  child.o.number = true
+
+  open_at(3, 4)
+
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 74, height = 4, row = 4, col = 4 })
+end
+
+tests["open()"]["fits the width of a split window"] = function()
+  child.cmd("vsplit")
+  local width = child.api.nvim_win_get_width(0)
+
+  open_at(3, 4)
+
+  MiniTest.expect.equality(window_layout().width, width - 2)
+end
+
+tests["open()"]["centers the window when the commented lines are out of view"] = function()
+  open_at(28, 29)
+
+  MiniTest.expect.equality(window_layout(), { relative = "win", width = 78, height = 4, row = 8, col = 0 })
 end
 
 tests["open()"]["draws a double border when 'winborder' is not set"] = function()
@@ -132,7 +219,7 @@ tests["open()"]["draws no border when 'winborder' is none"] = function()
 end
 
 tests["open()"]["shows the full key hints in the footer when they fit the window"] = function()
-  child.o.columns = 88
+  child.o.columns = 46
 
   open_editor("")
 
@@ -141,7 +228,7 @@ tests["open()"]["shows the full key hints in the footer when they fit the window
 end
 
 tests["open()"]["shows only the commands in the footer when the full key hints do not fit"] = function()
-  child.o.columns = 87
+  child.o.columns = 45
 
   open_editor("")
 
@@ -150,11 +237,11 @@ tests["open()"]["shows only the commands in the footer when the full key hints d
 end
 
 tests["open()"]["keeps the shortest footer when even that does not fit the window"] = function()
-  child.lua([[require("nvim-feedback.ui").configure({ window = { width = 0.1, height = 0.5 }, icon = "󰆉" })]])
+  configure(0.1, 0.5)
 
   open_editor("")
 
-  MiniTest.expect.equality(child.api.nvim_win_get_width(0), 8)
+  MiniTest.expect.equality(child.api.nvim_win_get_width(0), 6)
   MiniTest.expect.equality(window_footer(), " :w · :wq · :q! ")
 end
 
@@ -171,31 +258,31 @@ tests["open()"]["shows the given title with the location of the comment"] = func
 end
 
 tests["open()"]["shows the whole path of the comment when it fits the title"] = function()
-  open_titled(240, LONG_PATH, 8, 8)
+  open_titled(122, LONG_PATH, 8, 8)
 
   MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · " .. LONG_PATH .. ":8 ")
 end
 
 tests["open()"]["drops leading directories of a path that does not fit the title"] = function()
-  open_titled(140, LONG_PATH, 8, 8)
+  open_titled(72, LONG_PATH, 8, 8)
 
   MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · .../new-server-class/NewServerClass.page.tsx:8 ")
 end
 
 tests["open()"]["shortens the file name when no directory can be dropped"] = function()
-  open_titled(80, LONG_PATH, 8, 8)
+  open_titled(42, LONG_PATH, 8, 8)
 
   MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · NewServerCla...:8 ")
 end
 
 tests["open()"]["leaves the location out of a title too narrow for it"] = function()
-  open_titled(40, LONG_PATH, 8, 8)
+  open_titled(22, LONG_PATH, 8, 8)
 
   MiniTest.expect.equality(window_title(), " 󰆉 Edit comment ")
 end
 
 tests["open()"]["keeps the fitted location when the unsaved-changes mark appears"] = function()
-  open_titled(140, LONG_PATH, 8, 8)
+  open_titled(72, LONG_PATH, 8, 8)
 
   child.api.nvim_buf_set_lines(0, 0, -1, false, { "Changed" })
 
