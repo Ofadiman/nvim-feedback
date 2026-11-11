@@ -50,39 +50,6 @@ local function number_lines(buffer, first, count)
   end
 end
 
-local function highlight_range(buffer, range, first, lines)
-  local function row(line)
-    return line - first
-  end
-
-  if range.columns then
-    for index, column in ipairs(range.columns) do
-      local line = range.start_line + index - 1
-      local end_col = math.min(column.end_col, #(lines[line - first + 1] or ""))
-      if end_col > column.start_col then
-        vim.api.nvim_buf_set_extmark(buffer, namespace, row(line), column.start_col, {
-          end_col = end_col,
-          hl_group = "NvimFeedbackRange",
-          strict = false,
-        })
-      end
-    end
-  elseif range.start_col then
-    vim.api.nvim_buf_set_extmark(buffer, namespace, row(range.start_line), range.start_col, {
-      end_row = row(range.end_line),
-      end_col = range.end_col,
-      hl_group = "NvimFeedbackRange",
-      strict = false,
-    })
-  else
-    vim.api.nvim_buf_set_extmark(buffer, namespace, row(range.start_line), 0, {
-      end_row = row(range.end_line),
-      line_hl_group = "NvimFeedbackRange",
-      strict = false,
-    })
-  end
-end
-
 local function show_comment(buffer, window, comment)
   vim.api.nvim_buf_set_lines(buffer, 0, -1, false, vim.split(comment, "\n", { plain = true }))
   vim.wo[window].wrap = true
@@ -96,7 +63,7 @@ local function show_code(buffer, window, entry, preview_utils)
   if entry.stale then
     number_lines(buffer, first, #lines)
   end
-  highlight_range(buffer, entry.range, first, lines)
+  ui.highlight_range(buffer, namespace, entry.range, first, lines)
 
   local filetype = vim.filetype.match({ filename = entry.item.file, contents = lines })
   if filetype then

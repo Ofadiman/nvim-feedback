@@ -102,6 +102,26 @@ local function window_title()
   ]])
 end
 
+local function target_highlights()
+  return child.lua(
+    [[
+    local buffer = vim.fn.bufnr(...)
+    local namespace = vim.api.nvim_create_namespace("nvim-feedback-target")
+    local result = {}
+    for _, mark in ipairs(vim.api.nvim_buf_get_extmarks(buffer, namespace, 0, -1, { details = true })) do
+      local details = mark[4]
+      if details.line_hl_group then
+        table.insert(result, { lines = { mark[2], details.end_row }, group = details.line_hl_group })
+      else
+        table.insert(result, { from = { mark[2], mark[3] }, to = { details.end_row, details.end_col }, group = details.hl_group })
+      end
+    end
+    return result
+  ]],
+    { vim.fs.joinpath(repository, "values.lua") }
+  )
+end
+
 local function current_file()
   return child.api.nvim_buf_get_name(0)
 end
@@ -183,6 +203,67 @@ tests["add()"]["opens the comment window right below the selected lines"] = func
 
   local config = child.api.nvim_win_get_config(0)
   MiniTest.expect.equality({ config.relative, config.win, config.row, config.col }, { "win", source, 2, 0 })
+end
+
+tests["add()"]["highlights the selected lines while the new comment is being written"] = function()
+  open_file()
+
+  child.type_keys("Vj", "<F2>")
+
+  MiniTest.expect.equality(target_highlights(), { { lines = { 0, 1 }, group = "NvimFeedbackRange" } })
+end
+
+tests["add()"]["highlights the selected characters while the new comment is being written"] = function()
+  open_file()
+  child.api.nvim_win_set_cursor(0, { 4, 7 })
+
+  child.type_keys("v4l", "<F2>")
+
+  MiniTest.expect.equality(target_highlights(), { { from = { 3, 7 }, to = { 3, 12 }, group = "NvimFeedbackRange" } })
+end
+
+tests["add()"]["highlights the selected block while the new comment is being written"] = function()
+  open_file()
+  child.api.nvim_win_set_cursor(0, { 1, 6 })
+
+  child.type_keys("<C-v>j4l", "<F2>")
+
+  MiniTest.expect.equality(target_highlights(), {
+    { from = { 0, 6 }, to = { 0, 11 }, group = "NvimFeedbackRange" },
+    { from = { 1, 6 }, to = { 1, 11 }, group = "NvimFeedbackRange" },
+  })
+end
+
+tests["add()"]["removes the highlight of the selection once the comment window closes"] = function()
+  open_file()
+  child.type_keys("Vj", "<F2>")
+
+  helpers.save_comment(child, { "Merge these" })
+
+  MiniTest.expect.equality(target_highlights(), {})
+  MiniTest.expect.equality(helpers.highlights(child), { { start_line = 1, end_line = 2 } })
+end
+
+tests["add()"]["removes the highlight of the selection when the comment is discarded"] = function()
+  open_file()
+  child.type_keys("Vj", "<F2>")
+
+  child.cmd("quit!")
+
+  MiniTest.expect.equality(target_highlights(), {})
+end
+
+tests["add()"]["keeps the highlight of the open comment when adding is tried again elsewhere"] = function()
+  open_file()
+  child.type_keys("<F2>")
+  child.ensure_normal_mode()
+  child.cmd("wincmd p")
+  child.api.nvim_win_set_cursor(0, { 4, 0 })
+
+  child.type_keys("<F2>")
+
+  MiniTest.expect.equality(target_highlights(), { { lines = { 0, 0 }, group = "NvimFeedbackRange" } })
+  MiniTest.expect.equality(#helpers.floating_windows(child), 1)
 end
 
 tests["add()"]["comments on the whole lines selected with V"] = function()

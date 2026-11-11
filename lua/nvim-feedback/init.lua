@@ -7,6 +7,7 @@ local ui = require("nvim-feedback.ui")
 local M = {}
 
 local namespace = vim.api.nvim_create_namespace("nvim-feedback")
+local target_namespace = vim.api.nvim_create_namespace("nvim-feedback-target")
 local buffers = {}
 local feedback_counts = {}
 local mtimes = {}
@@ -550,7 +551,7 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
   end
 
   local saved = false
-  ui.open("", function(text)
+  local opened = ui.open("", function(text)
     if saved then
       return save_comment(context.root, context.branch, id, text)
     end
@@ -572,7 +573,15 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
     start_insert = true,
     title = "New comment",
     location = { file = context.relative_path, start_line = start_line, end_line = end_line },
+    on_close = function()
+      if vim.api.nvim_buf_is_valid(buffer) then
+        vim.api.nvim_buf_clear_namespace(buffer, target_namespace, 0, -1)
+      end
+    end,
   })
+  if opened then
+    ui.highlight_range(buffer, target_namespace, entry.range, 1, lines)
+  end
 end
 
 local function edit_feedback(current, item)

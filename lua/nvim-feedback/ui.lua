@@ -45,6 +45,39 @@ function M.location(file, start_line, end_line)
   return file .. line_numbers(start_line, end_line)
 end
 
+function M.highlight_range(buffer, namespace, range, first, lines)
+  local function row(line)
+    return line - first
+  end
+
+  if range.columns then
+    for index, column in ipairs(range.columns) do
+      local line = range.start_line + index - 1
+      local end_col = math.min(column.end_col, #(lines[line - first + 1] or ""))
+      if end_col > column.start_col then
+        vim.api.nvim_buf_set_extmark(buffer, namespace, row(line), column.start_col, {
+          end_col = end_col,
+          hl_group = "NvimFeedbackRange",
+          strict = false,
+        })
+      end
+    end
+  elseif range.start_col then
+    vim.api.nvim_buf_set_extmark(buffer, namespace, row(range.start_line), range.start_col, {
+      end_row = row(range.end_line),
+      end_col = range.end_col,
+      hl_group = "NvimFeedbackRange",
+      strict = false,
+    })
+  else
+    vim.api.nvim_buf_set_extmark(buffer, namespace, row(range.start_line), 0, {
+      end_row = row(range.end_line),
+      line_hl_group = "NvimFeedbackRange",
+      strict = false,
+    })
+  end
+end
+
 function M.labeled(text)
   if settings.icon == "" then
     return text
@@ -172,7 +205,7 @@ function M.open(value, on_save, options)
   options = options or {}
   if active_window and vim.api.nvim_win_is_valid(active_window) then
     vim.api.nvim_set_current_win(active_window)
-    return
+    return false
   end
 
   local source = vim.api.nvim_get_current_win()
@@ -269,6 +302,9 @@ function M.open(value, on_save, options)
     once = true,
     callback = function()
       active_window = nil
+      if options.on_close then
+        options.on_close()
+      end
     end,
   })
 
@@ -282,6 +318,7 @@ function M.open(value, on_save, options)
       end
     end)
   end
+  return true
 end
 
 return M

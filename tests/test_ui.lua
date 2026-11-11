@@ -339,6 +339,21 @@ tests["open()"]["focuses the open window instead of opening a second one"] = fun
   MiniTest.expect.equality(child.api.nvim_buf_get_lines(0, 0, -1, false), { "First" })
 end
 
+tests["open()"]["reports whether it opened a window and tells when the window closes"] = function()
+  local opened = child.lua([[
+    _G.closed = 0
+    local options = { on_close = function() _G.closed = _G.closed + 1 end }
+    local ui = require("nvim-feedback.ui")
+    return { ui.open("First", function() return true end, options), ui.open("Second", function() return true end, options) }
+  ]])
+  MiniTest.expect.equality(opened, { true, false })
+  MiniTest.expect.equality(child.lua_get("_G.closed"), 0)
+
+  child.cmd("quit!")
+
+  MiniTest.expect.equality(child.lua_get("_G.closed"), 1)
+end
+
 tests["open()"]["opens a new window after the previous one was closed"] = function()
   open_editor("First")
   local window = child.api.nvim_get_current_win()
