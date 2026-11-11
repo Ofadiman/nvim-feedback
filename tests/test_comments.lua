@@ -92,6 +92,16 @@ local function statusline()
   return child.lua_get([[require("nvim-feedback").statusline()]])
 end
 
+local function window_title()
+  return child.lua([[
+    local text = {}
+    for _, chunk in ipairs(vim.api.nvim_win_get_config(0).title) do
+      table.insert(text, chunk[1])
+    end
+    return table.concat(text)
+  ]])
+end
+
 local function current_file()
   return child.api.nvim_buf_get_name(0)
 end
@@ -155,6 +165,14 @@ tests["add()"]["opens the comment window in insert mode"] = function()
 
   MiniTest.expect.equality(#helpers.floating_windows(child), 1)
   MiniTest.expect.equality(child.fn.mode(), "i")
+end
+
+tests["add()"]["titles the comment window with the location of the new comment"] = function()
+  open_file()
+
+  child.type_keys("Vj", "<F2>")
+
+  MiniTest.expect.equality(window_title(), " 󰆉 New comment · values.lua:1-2 ")
 end
 
 tests["add()"]["comments on the whole lines selected with V"] = function()
@@ -351,6 +369,16 @@ tests["edit()"]["saves the edited text of the comment under the cursor"] = funct
 
   MiniTest.expect.equality(comments(), { "Explain beta in detail" })
   MiniTest.expect.equality(helpers.virtual_lines(child)[1].text, "  󰆉 Explain beta in detail")
+end
+
+tests["edit()"]["titles the comment window with where the comment is now"] = function()
+  write_feedback({ comment({ comment = "Explain beta", range = { start_line = 2, end_line = 2 } }) })
+  open_file()
+  child.type_keys("ggO", "local zero = 0", "<Esc>")
+
+  child.type_keys("3G", "<F3>")
+
+  MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · values.lua:3 ")
 end
 
 tests["edit()"]["asks which comment to edit when several overlap the cursor line"] = function()

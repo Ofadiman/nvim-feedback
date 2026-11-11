@@ -8,12 +8,7 @@ local COMMENT_HEIGHT_SHARE = 1 / 3
 local namespace = vim.api.nvim_create_namespace("nvim-feedback-preview")
 
 local function location(entry)
-  local range = entry.range
-  local text = string.format("%s:%d", entry.item.file, range.start_line)
-  if range.end_line ~= range.start_line then
-    text = text .. "-" .. range.end_line
-  end
-  return text
+  return ui.location(entry.item.file, entry.range.start_line, entry.range.end_line)
 end
 
 local function preview_title(entry)

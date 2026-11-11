@@ -568,13 +568,28 @@ local function create_feedback(buffer, context, start_line, end_line, start_col,
     mtimes[context.root] = store.mtime(context.root)
     refresh_root(context.root)
     return true
-  end, { start_insert = true })
+  end, {
+    start_insert = true,
+    title = "New comment",
+    location = { file = context.relative_path, start_line = start_line, end_line = end_line },
+  })
 end
 
 local function edit_feedback(current, item)
+  local start_line, end_line = item.range.start_line, item.range.end_line
+  local info = buffers[current.buffer]
+  local mark = info and info.marks[item.id]
+  if mark then
+    local mark_start, mark_end = mark_range(current.buffer, mark)
+    start_line, end_line = mark_start or start_line, mark_end or end_line
+  end
+
   ui.open(item.comment, function(text)
     return save_comment(current.context.root, current.context.branch, item.id, text)
-  end)
+  end, {
+    title = "Edit comment",
+    location = { file = item.file, start_line = start_line, end_line = end_line },
+  })
 end
 
 function M.add()

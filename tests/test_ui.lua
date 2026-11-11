@@ -1,5 +1,7 @@
 local helpers = dofile("tests/helpers.lua")
 
+local LONG_PATH = "packages/agent-management/src/features/new-server-class/NewServerClass.page.tsx"
+
 local child = MiniTest.new_child_neovim()
 
 local function open_editor(value, options)
@@ -35,6 +37,19 @@ local function window_title()
     end
     return table.concat(text)
   ]])
+end
+
+local function open_titled(columns, file, start_line, end_line)
+  child.o.columns = columns
+  child.lua(
+    [[
+    local location = ...
+    require("nvim-feedback.ui").open("", function()
+      return true
+    end, { title = "Edit comment", location = location })
+  ]],
+    { { file = file, start_line = start_line, end_line = end_line } }
+  )
 end
 
 local function window_footer()
@@ -147,6 +162,45 @@ tests["open()"]["shows the icon in the title"] = function()
   open_editor("")
 
   MiniTest.expect.equality(window_title(), " 󰆉 AI feedback ")
+end
+
+tests["open()"]["shows the given title with the location of the comment"] = function()
+  open_titled(80, "a.lua", 3, 5)
+
+  MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · a.lua:3-5 ")
+end
+
+tests["open()"]["shows the whole path of the comment when it fits the title"] = function()
+  open_titled(240, LONG_PATH, 8, 8)
+
+  MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · " .. LONG_PATH .. ":8 ")
+end
+
+tests["open()"]["drops leading directories of a path that does not fit the title"] = function()
+  open_titled(140, LONG_PATH, 8, 8)
+
+  MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · .../new-server-class/NewServerClass.page.tsx:8 ")
+end
+
+tests["open()"]["shortens the file name when no directory can be dropped"] = function()
+  open_titled(80, LONG_PATH, 8, 8)
+
+  MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · NewServerCla...:8 ")
+end
+
+tests["open()"]["leaves the location out of a title too narrow for it"] = function()
+  open_titled(40, LONG_PATH, 8, 8)
+
+  MiniTest.expect.equality(window_title(), " 󰆉 Edit comment ")
+end
+
+tests["open()"]["keeps the fitted location when the unsaved-changes mark appears"] = function()
+  open_titled(140, LONG_PATH, 8, 8)
+
+  child.api.nvim_buf_set_lines(0, 0, -1, false, { "Changed" })
+
+  MiniTest.expect.equality(window_title(), " 󰆉 Edit comment · .../new-server-class/NewServerClass.page.tsx:8 [+] ")
+  MiniTest.expect.equality(vim.fn.strdisplaywidth(window_title()) <= child.api.nvim_win_get_width(0), true)
 end
 
 tests["open()"]["shows the configured icon in the title"] = function()

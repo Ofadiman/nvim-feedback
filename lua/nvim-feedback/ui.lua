@@ -34,6 +34,17 @@ function M.summary(comment, stale, index)
   return (stale and "[stale] " or "") .. text
 end
 
+local function line_numbers(start_line, end_line)
+  if end_line ~= start_line then
+    return string.format(":%d-%d", start_line, end_line)
+  end
+  return string.format(":%d", start_line)
+end
+
+function M.location(file, start_line, end_line)
+  return file .. line_numbers(start_line, end_line)
+end
+
 function M.labeled(text)
   if settings.icon == "" then
     return text
@@ -56,8 +67,36 @@ local function initial_lines(value)
   return vim.split(value, "\n", { plain = true })
 end
 
-local function window_title(modified)
-  return " " .. M.labeled("AI feedback") .. (modified and " [+]" or "") .. " "
+local function window_title(label, modified)
+  return " " .. M.labeled(label) .. (modified and " [+]" or "") .. " "
+end
+
+local function fitted_label(label, location, width)
+  if not location then
+    return label
+  end
+
+  local function fits(path)
+    return vim.fn.strdisplaywidth(window_title(label .. " · " .. path, true)) <= width
+  end
+
+  local lines = line_numbers(location.start_line, location.end_line)
+  local parts = vim.split(location.file, "/", { plain = true })
+  for first = 1, #parts do
+    local path = (first == 1 and "" or ".../") .. table.concat(parts, "/", first) .. lines
+    if fits(path) then
+      return label .. " · " .. path
+    end
+  end
+
+  local name = parts[#parts]
+  for count = vim.fn.strchars(name) - 1, 1, -1 do
+    local path = vim.fn.strcharpart(name, 0, count) .. "..." .. lines
+    if fits(path) then
+      return label .. " · " .. path
+    end
+  end
+  return label
 end
 
 local function window_footer(width)
@@ -104,6 +143,7 @@ function M.open(value, on_save, options)
   local max_width = math.max(1, vim.o.columns - 4)
   local max_height = math.max(1, vim.o.lines - 4)
   local width = math.min(max_width, math.max(1, math.floor(vim.o.columns * window.width)))
+  local title_label = fitted_label(options.title or "AI feedback", options.location, width)
   local height = math.min(max_height, math.max(1, math.floor(vim.o.lines * window.height)))
   local row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1)
   local column = math.max(0, math.floor((vim.o.columns - width) / 2))
@@ -112,7 +152,7 @@ function M.open(value, on_save, options)
     relative = "editor",
     style = "minimal",
     border = vim.o.winborder == "" and FALLBACK_BORDER or nil,
-    title = window_title(false),
+    title = window_title(title_label, false),
     title_pos = "center",
     footer = window_footer(width),
     footer_pos = "center",
@@ -136,7 +176,7 @@ function M.open(value, on_save, options)
   local function update_title()
     if vim.api.nvim_win_is_valid(opened_window) then
       vim.api.nvim_win_set_config(opened_window, {
-        title = window_title(vim.bo[buffer].modified),
+        title = window_title(title_label, vim.bo[buffer].modified),
         title_pos = "center",
       })
     end
